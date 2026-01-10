@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Zen Bali</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <header class="header" style="background: var(--gray-900);">
+        <div class="container">
+            <div class="header-content">
+                <a href="/admin/dashboard.html" class="logo" style="color: var(--orange-400);"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <nav class="nav">
+                    <a href="/admin/dashboard.html" class="nav-link active" style="color: white;">Dashboard</a>
+                    <a href="/admin/events.html" class="nav-link" style="color: white;">Events</a>
+                    <a href="/admin/creators.html" class="nav-link" style="color: white;">Creators</a>
+                    <a href="/admin/payments.html" class="nav-link" style="color: white;">Payments</a>
+                    <a href="#" class="nav-link" style="color: white;" onclick="adminLogout()">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <h1 class="mb-4">Admin Dashboard</h1>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--primary);" id="statTotalEvents">-</div>
+                    <div class="text-muted">Total Events</div>
+                </div></div>
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--success);" id="statPublished">-</div>
+                    <div class="text-muted">Published</div>
+                </div></div>
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--orange-500);" id="statUpcoming">-</div>
+                    <div class="text-muted">Upcoming</div>
+                </div></div>
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--primary);" id="statCreators">-</div>
+                    <div class="text-muted">Creators</div>
+                </div></div>
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--success);" id="statRevenue">-</div>
+                    <div class="text-muted">Revenue</div>
+                </div></div>
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--gray-600);" id="statVisitors">-</div>
+                    <div class="text-muted">Visitors</div>
+                </div></div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Recent Events</h2></div>
+                    <div class="card-body" id="recentEvents"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h2 class="card-title">Recent Payments</h2></div>
+                    <div class="card-body" id="recentPayments"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/js/main.js"></script>
+    <script>
+        function adminLogout() {
+            localStorage.removeItem('zenbali_admin_token');
+            localStorage.removeItem('zenbali_token');
+            localStorage.removeItem('zenbali_user');
+            window.location.href = '/admin/login.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('zenbali_admin_token')) {
+                window.location.href = '/admin/login.html';
+                return;
+            }
+            loadDashboard();
+        });
+
+        async function loadDashboard() {
+            try {
+                const response = await API.get('/admin/dashboard');
+                if (response.success) {
+                    const d = response.data;
+                    document.getElementById('statTotalEvents').textContent = d.total_events;
+                    document.getElementById('statPublished').textContent = d.published_events;
+                    document.getElementById('statUpcoming').textContent = d.upcoming_events;
+                    document.getElementById('statCreators').textContent = d.total_creators;
+                    document.getElementById('statRevenue').textContent = '$' + d.total_revenue.toFixed(0);
+                    document.getElementById('statVisitors').textContent = d.total_visitors.toLocaleString();
+
+                    // Recent events
+                    const eventsHtml = (d.recent_events || []).length === 0 
+                        ? '<p class="text-muted">No events yet</p>'
+                        : `<ul style="list-style: none; padding: 0; margin: 0;">${d.recent_events.map(e => `
+                            <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-light);">
+                                <strong>${Utils.escapeHtml(e.title)}</strong><br>
+                                <span class="text-muted" style="font-size: 0.875rem;">${Utils.formatDate(e.event_date)} • ${e.location_name || 'Unknown'}</span>
+                            </li>
+                        `).join('')}</ul>`;
+                    document.getElementById('recentEvents').innerHTML = eventsHtml;
+
+                    // Recent payments
+                    const paymentsHtml = (d.recent_payments || []).length === 0
+                        ? '<p class="text-muted">No payments yet</p>'
+                        : `<ul style="list-style: none; padding: 0; margin: 0;">${d.recent_payments.map(p => `
+                            <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--border-light);">
+                                <strong>$${(p.amount_cents / 100).toFixed(2)}</strong> - ${Utils.escapeHtml(p.event_title || 'Unknown')}<br>
+                                <span class="text-muted" style="font-size: 0.875rem;">${Utils.formatDateTime(p.created_at)} • ${p.status}</span>
+                            </li>
+                        `).join('')}</ul>`;
+                    document.getElementById('recentPayments').innerHTML = paymentsHtml;
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+            }
+        }
+    </script>
+</body>
+</html>

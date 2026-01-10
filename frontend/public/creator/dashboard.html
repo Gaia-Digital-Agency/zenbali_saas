@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Zen Bali</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <nav class="nav">
+                    <a href="/creator/dashboard.html" class="nav-link active">Dashboard</a>
+                    <a href="/creator/events.html" class="nav-link">My Events</a>
+                    <a href="/creator/new-event.html" class="nav-link">Post Event</a>
+                    <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <div class="d-flex justify-between align-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1>Welcome, <span id="userName">Creator</span>!</h1>
+                    <p class="text-muted">Manage your events and track payments</p>
+                </div>
+                <a href="/creator/new-event.html" class="btn btn-primary btn-lg">+ Post New Event</a>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--primary);" id="totalEvents">-</div>
+                    <div class="text-muted">Total Events</div>
+                </div></div>
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--success);" id="publishedEvents">-</div>
+                    <div class="text-muted">Published</div>
+                </div></div>
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--warning);" id="pendingEvents">-</div>
+                    <div class="text-muted">Pending Payment</div>
+                </div></div>
+                <div class="card"><div class="card-body text-center">
+                    <div style="font-size: 2.5rem; color: var(--primary);" id="totalPaid">-</div>
+                    <div class="text-muted">Total Paid</div>
+                </div></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex justify-between align-center">
+                    <h2 class="card-title">Recent Events</h2>
+                    <a href="/creator/events.html" class="btn btn-secondary btn-sm">View All</a>
+                </div>
+                <div class="card-body">
+                    <div id="recentEvents"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a><br>Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            requireAuth();
+            const user = Auth.getUser();
+            if (user) document.getElementById('userName').textContent = user.name;
+            loadDashboard();
+        });
+
+        async function loadDashboard() {
+            try {
+                const response = await API.get('/creator/events?include_past=true&limit=100');
+                if (response.success) {
+                    const events = response.data.events || [];
+                    document.getElementById('totalEvents').textContent = events.length;
+                    document.getElementById('publishedEvents').textContent = events.filter(e => e.is_published).length;
+                    document.getElementById('pendingEvents').textContent = events.filter(e => !e.is_paid).length;
+                    renderRecentEvents(events.slice(0, 5));
+                }
+                const paymentsResponse = await API.get('/creator/payments?limit=100');
+                if (paymentsResponse.success) {
+                    const payments = paymentsResponse.data.payments || [];
+                    const totalPaid = payments.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.amount, 0);
+                    document.getElementById('totalPaid').textContent = '$' + totalPaid.toFixed(0);
+                }
+            } catch (error) { console.error('Failed to load dashboard:', error); }
+        }
+
+        function renderRecentEvents(events) {
+            const container = document.getElementById('recentEvents');
+            if (!events || events.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p class="text-muted">No events yet</p><a href="/creator/new-event.html" class="btn btn-primary">Create Your First Event</a></div>';
+                return;
+            }
+            container.innerHTML = `<div class="table-container"><table class="table"><thead><tr><th>Event</th><th>Date</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead><tbody>${events.map(event => `<tr><td><strong>${Utils.escapeHtml(event.title)}</strong></td><td>${Utils.formatDate(event.event_date)}</td><td>${Utils.escapeHtml(event.location)}</td><td>${event.is_published ? '<span class="badge badge-success">Published</span>' : event.is_paid ? '<span class="badge badge-warning">Paid</span>' : '<span class="badge badge-gray">Unpaid</span>'}</td><td><a href="/creator/edit-event.html?id=${event.id}" class="btn btn-sm btn-secondary">Edit</a>${!event.is_paid ? ` <button onclick="payForEvent('${event.id}')" class="btn btn-sm btn-primary">Pay $10</button>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
+        }
+
+        async function payForEvent(eventId) {
+            try {
+                const response = await API.post(`/creator/events/${eventId}/pay`, {});
+                if (response.success && response.data.session_url) window.location.href = response.data.session_url;
+            } catch (error) { Utils.showError(error.message); }
+        }
+    </script>
+</body>
+</html>

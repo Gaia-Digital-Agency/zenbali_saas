@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Event - Zen Bali</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <nav class="nav">
+                    <a href="/creator/dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="/creator/events.html" class="nav-link">My Events</a>
+                    <a href="/creator/new-event.html" class="nav-link">Post Event</a>
+                    <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container" style="max-width: 800px;">
+            <div id="alertContainer"></div>
+            
+            <div id="newEventAlert" class="alert alert-success d-none">
+                🎉 Event created! Now upload an image (optional) and pay $10 to publish.
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem;">
+                <div class="card">
+                    <div class="card-header">
+                        <h1 class="card-title">Edit Event</h1>
+                    </div>
+                    <div class="card-body">
+                        <div id="formContainer">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <!-- Image Upload -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3 class="card-title">Event Image</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="imagePreview" style="width: 100%; height: 150px; background: var(--gray-100); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; overflow: hidden;">
+                                <span class="text-muted">No image</span>
+                            </div>
+                            <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" style="display: none;">
+                            <button type="button" class="btn btn-secondary btn-block" onclick="document.getElementById('imageInput').click()">
+                                📷 Upload Image
+                            </button>
+                            <p class="form-hint">Max 5MB. JPG, PNG, or WebP.</p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Status -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment</h3>
+                        </div>
+                        <div class="card-body" id="paymentStatus">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a><br>Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        let eventId = null;
+        let eventData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            requireAuth();
+            
+            eventId = Utils.getQueryParam('id');
+            if (!eventId) {
+                window.location.href = '/creator/events.html';
+                return;
+            }
+
+            if (Utils.getQueryParam('new') === '1') {
+                document.getElementById('newEventAlert').classList.remove('d-none');
+            }
+
+            loadEvent();
+            setupImageUpload();
+        });
+
+        async function loadEvent() {
+            try {
+                const response = await API.get(`/creator/events/${eventId}`);
+                if (response.success) {
+                    eventData = response.data;
+                    renderForm();
+                    renderPaymentStatus();
+                    if (eventData.image_url) {
+                        document.getElementById('imagePreview').innerHTML = 
+                            `<img src="${eventData.image_url}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    }
+                }
+            } catch (error) {
+                document.getElementById('formContainer').innerHTML = 
+                    `<div class="alert alert-error">Failed to load event: ${error.message}</div>`;
+            }
+        }
+
+        async function renderForm() {
+            const [locResponse, typeResponse, entranceResponse] = await Promise.all([
+                API.get('/locations'),
+                API.get('/event-types'),
+                API.get('/entrance-types')
+            ]);
+
+            const locations = locResponse.data || [];
+            const eventTypes = typeResponse.data || [];
+            const entranceTypes = entranceResponse.data || [];
+
+            document.getElementById('formContainer').innerHTML = `
+                <form id="eventForm">
+                    <div class="form-group">
+                        <label class="form-label">Event Title <span class="required">*</span></label>
+                        <input type="text" name="title" class="form-control" required value="${Utils.escapeHtml(eventData.title)}">
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Event Date <span class="required">*</span></label>
+                            <input type="date" name="event_date" class="form-control" required value="${eventData.event_date}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Event Time</label>
+                            <input type="time" name="event_time" class="form-control" value="${eventData.event_time || ''}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Location <span class="required">*</span></label>
+                        <select name="location_id" class="form-control" required>
+                            ${locations.map(l => `<option value="${l.id}" ${l.id === eventData.location_id ? 'selected' : ''}>${l.name}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Event Type <span class="required">*</span></label>
+                            <select name="event_type_id" class="form-control" required>
+                                ${eventTypes.map(t => `<option value="${t.id}" ${t.id === eventData.event_type_id ? 'selected' : ''}>${t.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Duration</label>
+                            <input type="text" name="duration" class="form-control" value="${Utils.escapeHtml(eventData.duration || '')}">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Entrance Type <span class="required">*</span></label>
+                            <select name="entrance_type_id" class="form-control" required>
+                                ${entranceTypes.map(t => `<option value="${t.id}" ${t.id === eventData.entrance_type_id ? 'selected' : ''}>${t.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Entrance Fee (USD)</label>
+                            <input type="number" name="entrance_fee" class="form-control" min="0" step="0.01" value="${eventData.entrance_fee || 0}">
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label class="form-label">Contact Email <span class="required">*</span></label>
+                            <input type="email" name="contact_email" class="form-control" required value="${Utils.escapeHtml(eventData.contact_email)}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Mobile</label>
+                            <input type="tel" name="contact_mobile" class="form-control" value="${Utils.escapeHtml(eventData.contact_mobile || '')}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Event Description</label>
+                        <textarea name="notes" class="form-control" rows="4">${Utils.escapeHtml(eventData.notes || '')}</textarea>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Save Changes</button>
+                        <a href="/creator/events.html" class="btn btn-secondary">Back to Events</a>
+                    </div>
+                </form>
+            `;
+
+            document.getElementById('eventForm').addEventListener('submit', handleSubmit);
+        }
+
+        function renderPaymentStatus() {
+            const container = document.getElementById('paymentStatus');
+            
+            if (eventData.is_published) {
+                container.innerHTML = `
+                    <div class="text-center">
+                        <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">✓ Published</span>
+                        <p class="text-muted mt-2 mb-0">Your event is live!</p>
+                        <a href="/event.html?id=${eventId}" target="_blank" class="btn btn-outline btn-block mt-2">View Event</a>
+                    </div>
+                `;
+            } else if (eventData.is_paid) {
+                container.innerHTML = `
+                    <div class="text-center">
+                        <span class="badge badge-warning" style="font-size: 1rem; padding: 0.5rem 1rem;">Paid</span>
+                        <p class="text-muted mt-2 mb-0">Payment received. Publishing soon.</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="text-center">
+                        <p class="mb-2"><strong style="font-size: 1.5rem; color: var(--primary);">$10 USD</strong></p>
+                        <p class="text-muted mb-3">One-time fee to publish</p>
+                        <button onclick="payForEvent()" class="btn btn-primary btn-block">Pay & Publish</button>
+                    </div>
+                `;
+            }
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+            try {
+                const form = e.target;
+                const data = {
+                    title: form.title.value,
+                    event_date: form.event_date.value,
+                    event_time: form.event_time.value,
+                    location_id: parseInt(form.location_id.value),
+                    event_type_id: parseInt(form.event_type_id.value),
+                    duration: form.duration.value,
+                    entrance_type_id: parseInt(form.entrance_type_id.value),
+                    entrance_fee: parseFloat(form.entrance_fee.value) || 0,
+                    contact_email: form.contact_email.value,
+                    contact_mobile: form.contact_mobile.value,
+                    notes: form.notes.value
+                };
+
+                await API.put(`/creator/events/${eventId}`, data);
+                Utils.showSuccess('Event updated successfully');
+            } catch (error) {
+                Utils.showError(error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Save Changes';
+            }
+        }
+
+        function setupImageUpload() {
+            document.getElementById('imageInput').addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (file.size > 5 * 1024 * 1024) {
+                    Utils.showError('File too large. Maximum size is 5MB.');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                try {
+                    const response = await API.upload(`/creator/events/${eventId}/upload-image`, formData);
+                    if (response.success) {
+                        document.getElementById('imagePreview').innerHTML = 
+                            `<img src="${response.data.image_url}" style="width: 100%; height: 100%; object-fit: cover;">`;
+                        Utils.showSuccess('Image uploaded successfully');
+                    }
+                } catch (error) {
+                    Utils.showError(error.message);
+                }
+            });
+        }
+
+        async function payForEvent() {
+            try {
+                const response = await API.post(`/creator/events/${eventId}/pay`, {});
+                if (response.success && response.data.session_url) {
+                    window.location.href = response.data.session_url;
+                }
+            } catch (error) {
+                Utils.showError(error.message);
+            }
+        }
+    </script>
+</body>
+</html>

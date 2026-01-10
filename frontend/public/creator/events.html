@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Events - Zen Bali</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <nav class="nav">
+                    <a href="/creator/dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="/creator/events.html" class="nav-link active">My Events</a>
+                    <a href="/creator/new-event.html" class="nav-link">Post Event</a>
+                    <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <div class="d-flex justify-between align-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
+                <h1>My Events</h1>
+                <a href="/creator/new-event.html" class="btn btn-primary">+ Post New Event</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-between align-center" style="flex-wrap: wrap; gap: 1rem;">
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-secondary" onclick="loadEvents(false)" id="btnUpcoming">Upcoming</button>
+                            <button class="btn btn-sm btn-outline" onclick="loadEvents(true)" id="btnAll">All Events</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="eventsContainer">
+                        <div class="loading"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a><br>Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        let includePast = false;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            requireAuth();
+            loadEvents(false);
+        });
+
+        async function loadEvents(includeAll) {
+            includePast = includeAll;
+            
+            // Update buttons
+            document.getElementById('btnUpcoming').className = includeAll ? 'btn btn-sm btn-outline' : 'btn btn-sm btn-secondary';
+            document.getElementById('btnAll').className = includeAll ? 'btn btn-sm btn-secondary' : 'btn btn-sm btn-outline';
+
+            const container = document.getElementById('eventsContainer');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const response = await API.get(`/creator/events?include_past=${includePast}&limit=100`);
+                
+                if (response.success) {
+                    const events = response.data.events || [];
+                    
+                    if (events.length === 0) {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📅</div>
+                                <h3 class="empty-state-title">No events found</h3>
+                                <p class="empty-state-text">Create your first event to get started.</p>
+                                <a href="/creator/new-event.html" class="btn btn-primary">Post New Event</a>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    container.innerHTML = `
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Event</th>
+                                        <th>Date</th>
+                                        <th>Location</th>
+                                        <th>Type</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${events.map(event => `
+                                        <tr>
+                                            <td>
+                                                <strong>${Utils.escapeHtml(event.title)}</strong>
+                                                ${event.image_url ? '<br><span class="text-muted" style="font-size: 0.75rem;">📷 Has image</span>' : ''}
+                                            </td>
+                                            <td>${Utils.formatDate(event.event_date)}${event.event_time ? '<br><span class="text-muted">' + event.event_time + '</span>' : ''}</td>
+                                            <td>${Utils.escapeHtml(event.location)}</td>
+                                            <td>${Utils.escapeHtml(event.event_type)}</td>
+                                            <td>
+                                                ${event.is_published 
+                                                    ? '<span class="badge badge-success">Published</span>'
+                                                    : event.is_paid 
+                                                        ? '<span class="badge badge-warning">Paid</span>'
+                                                        : '<span class="badge badge-gray">Unpaid</span>'
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="d-flex gap-1" style="flex-wrap: wrap;">
+                                                    <a href="/creator/edit-event.html?id=${event.id}" class="btn btn-sm btn-secondary">Edit</a>
+                                                    ${!event.is_paid ? `<button onclick="payForEvent('${event.id}')" class="btn btn-sm btn-primary">Pay $10</button>` : ''}
+                                                    ${event.is_published ? `<a href="/event.html?id=${event.id}" target="_blank" class="btn btn-sm btn-outline">View</a>` : ''}
+                                                    <button onclick="deleteEvent('${event.id}', '${Utils.escapeHtml(event.title)}')" class="btn btn-sm btn-danger">Delete</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="alert alert-error">Failed to load events: ${error.message}</div>`;
+            }
+        }
+
+        async function payForEvent(eventId) {
+            try {
+                const response = await API.post(`/creator/events/${eventId}/pay`, {});
+                if (response.success && response.data.session_url) {
+                    window.location.href = response.data.session_url;
+                }
+            } catch (error) {
+                Utils.showError(error.message);
+            }
+        }
+
+        async function deleteEvent(eventId, title) {
+            if (!confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                const response = await API.delete(`/creator/events/${eventId}`);
+                if (response.success) {
+                    Utils.showSuccess('Event deleted successfully');
+                    loadEvents(includePast);
+                }
+            } catch (error) {
+                Utils.showError(error.message);
+            }
+        }
+    </script>
+</body>
+</html>

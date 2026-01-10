@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details - Zen Bali</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <span>🌴</span>
+                    <span>Zen Bali</span>
+                </a>
+                <nav class="nav">
+                    <a href="/" class="nav-link">Events</a>
+                    <a href="/creator/login.html" class="nav-link">Post Event</a>
+                    <a href="/creator/login.html" class="btn btn-primary btn-sm">Login</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container" style="max-width: 900px;">
+            <div id="eventContainer">
+                <div class="loading loading-lg">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-stats">
+                    Visitors: <span id="visitorCount">-</span> | 
+                    Last Visit: <span id="lastVisitor">-</span>
+                </div>
+                <div class="footer-credit">
+                    Developed by <a href="https://net1io.com" target="_blank">net1io.com</a><br>
+                    Copyright &copy; 2024
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            loadVisitorStats();
+            
+            const eventId = Utils.getQueryParam('id');
+            if (!eventId) {
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                const response = await API.get(`/events/${eventId}`);
+                if (response.success && response.data) {
+                    renderEvent(response.data);
+                } else {
+                    throw new Error('Event not found');
+                }
+            } catch (error) {
+                document.getElementById('eventContainer').innerHTML = `
+                    <div class="alert alert-error">
+                        Event not found or no longer available.
+                        <br><br>
+                        <a href="/" class="btn btn-primary">Back to Events</a>
+                    </div>
+                `;
+            }
+        });
+
+        function renderEvent(event) {
+            const imageUrl = event.image_url || '/assets/images/placeholder.jpg';
+            const eventDate = Utils.formatDate(event.event_date);
+            const price = event.entrance_fee > 0 
+                ? Utils.formatCurrency(event.entrance_fee) 
+                : 'Free';
+
+            document.title = `${event.title} - Zen Bali`;
+
+            document.getElementById('eventContainer').innerHTML = `
+                <a href="/" class="btn btn-secondary mb-3">← Back to Events</a>
+                
+                <div class="card">
+                    <div style="height: 400px; overflow: hidden;">
+                        <img src="${Utils.escapeHtml(imageUrl)}" alt="${Utils.escapeHtml(event.title)}" 
+                             style="width: 100%; height: 100%; object-fit: cover;"
+                             onerror="this.src='/assets/images/placeholder.jpg'">
+                    </div>
+                    
+                    <div class="card-body">
+                        <div class="d-flex justify-between align-center mb-2" style="flex-wrap: wrap; gap: 1rem;">
+                            <span class="badge badge-primary">${Utils.escapeHtml(event.event_type)}</span>
+                            <span class="badge badge-gray">${Utils.escapeHtml(event.entrance_type)}</span>
+                        </div>
+                        
+                        <h1 style="font-size: 2rem; margin-bottom: 1.5rem;">${Utils.escapeHtml(event.title)}</h1>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                            <div>
+                                <strong style="color: var(--primary);">📅 Date</strong>
+                                <p style="margin: 0.25rem 0 0;">${eventDate}${event.event_time ? ' at ' + event.event_time : ''}</p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary);">📍 Location</strong>
+                                <p style="margin: 0.25rem 0 0;">${Utils.escapeHtml(event.location)}</p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary);">⏱️ Duration</strong>
+                                <p style="margin: 0.25rem 0 0;">${Utils.escapeHtml(event.duration || 'Not specified')}</p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--primary);">💰 Price</strong>
+                                <p style="margin: 0.25rem 0 0; font-weight: 600;">${price}</p>
+                            </div>
+                        </div>
+                        
+                        ${event.notes ? `
+                            <div style="margin-bottom: 2rem;">
+                                <h3 style="margin-bottom: 0.5rem;">About this Event</h3>
+                                <p style="white-space: pre-wrap;">${Utils.escapeHtml(event.notes)}</p>
+                            </div>
+                        ` : ''}
+                        
+                        <hr style="border: none; border-top: 1px solid var(--border-light); margin: 2rem 0;">
+                        
+                        <div>
+                            <h3 style="margin-bottom: 1rem;">Organizer</h3>
+                            <p style="font-weight: 600; margin-bottom: 0.5rem;">
+                                ${Utils.escapeHtml(event.organization_name || event.organizer)}
+                            </p>
+                            
+                            <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem;">
+                                <a href="mailto:${Utils.escapeHtml(event.contact_email)}" class="btn btn-primary">
+                                    📧 Email Organizer
+                                </a>
+                                ${event.contact_mobile ? `
+                                    <a href="tel:${Utils.escapeHtml(event.contact_mobile)}" class="btn btn-secondary">
+                                        📞 ${Utils.escapeHtml(event.contact_mobile)}
+                                    </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

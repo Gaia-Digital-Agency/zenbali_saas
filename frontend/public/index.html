@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Zen Bali - Discover events, retreats, workshops, and experiences in Bali, Indonesia">
+    <title>Zen Bali - Events in Bali</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <span>🌴</span>
+                    <span>Zen Bali</span>
+                </a>
+                <nav class="nav">
+                    <a href="/" class="nav-link active">Events</a>
+                    <a href="/creator/login.html" class="nav-link">Post Event</a>
+                    <a href="/creator/login.html" class="btn btn-primary btn-sm">Login</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section style="background: linear-gradient(135deg, var(--orange-500), var(--orange-600)); color: white; padding: 3rem 0;">
+        <div class="container text-center">
+            <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Discover Events in Bali</h1>
+            <p style="font-size: 1.125rem; opacity: 0.9; max-width: 600px; margin: 0 auto 1.5rem;">
+                Find yoga retreats, healing sessions, workshops, concerts, and more happening across the island
+            </p>
+            <a href="/creator/register.html" class="btn btn-lg" style="background: white; color: var(--orange-600);">
+                Post Your Event - $10
+            </a>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <!-- Filters -->
+            <div class="filters">
+                <form id="filterForm" class="filter-row">
+                    <div class="filter-group">
+                        <label>Location</label>
+                        <select id="filterLocation" name="location_id">
+                            <option value="">All Locations</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Event Type</label>
+                        <select id="filterEventType" name="event_type_id">
+                            <option value="">All Types</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Entrance</label>
+                        <select id="filterEntranceType" name="entrance_type_id">
+                            <option value="">All</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Date From</label>
+                        <input type="date" id="filterDateFrom" name="date_from">
+                    </div>
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input type="text" id="filterSearch" name="search" placeholder="Search events...">
+                    </div>
+                    <div class="filter-group" style="flex: 0;">
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Events Grid -->
+            <div id="eventsContainer">
+                <div class="loading loading-lg">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div id="pagination" class="pagination"></div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-stats">
+                    Visitors: <span id="visitorCount">-</span> | 
+                    Last Visit: <span id="lastVisitor">-</span>
+                </div>
+                <div class="footer-credit">
+                    Developed by <a href="https://net1io.com" target="_blank">net1io.com</a><br>
+                    Copyright &copy; 2024
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/events.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Load filters
+            loadFilters();
+            // Load events
+            loadEvents();
+            // Track visitor
+            trackVisitor();
+            // Load visitor stats
+            loadVisitorStats();
+        });
+    </script>
+</body>
+</html>

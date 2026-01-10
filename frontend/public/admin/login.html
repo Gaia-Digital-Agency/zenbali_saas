@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Zen Bali</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+            </div>
+        </div>
+    </header>
+    <main style="padding: 3rem 0;">
+        <div class="container" style="max-width: 400px;">
+            <div class="card">
+                <div class="card-header text-center"><h1 class="card-title">Admin Login</h1></div>
+                <div class="card-body">
+                    <div id="alertContainer"></div>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">Login</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script src="/js/main.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Logging in...';
+            try {
+                const form = e.target;
+                const response = await API.post('/admin/login', { email: form.email.value, password: form.password.value });
+                if (response.success) {
+                    localStorage.setItem('zenbali_admin_token', response.data.token);
+                    localStorage.setItem('zenbali_token', response.data.token);
+                    localStorage.setItem('zenbali_user', JSON.stringify({...response.data.admin, user_type: 'admin'}));
+                    window.location.href = '/admin/dashboard.html';
+                }
+            } catch (error) {
+                document.getElementById('alertContainer').innerHTML = `<div class="alert alert-error">${error.message}</div>`;
+                btn.disabled = false;
+                btn.textContent = 'Login';
+            }
+        });
+    </script>
+</body>
+</html>

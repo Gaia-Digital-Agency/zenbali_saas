@@ -1,0 +1,195 @@
+# Zen Bali - Project Context for Claude Code
+
+## Project Overview
+Zen Bali is a SaaS events platform for Bali, Indonesia (zenbali.org). Content creators pay $10 USD per event posting, and visitors browse events for free.
+
+## Tech Stack
+- **Backend**: Go 1.22+ with Chi router, PostgreSQL 15, Redis 7
+- **Database**: pgx v5 driver with embedded migrations
+- **Auth**: JWT (golang-jwt/jwt v5) + bcrypt password hashing
+- **Payments**: Stripe Go SDK v76
+- **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3 - NO frameworks
+- **Infrastructure**: Docker, Docker Compose, GCP (Cloud Run, Cloud SQL, GCS, Secret Manager)
+
+## Architecture Pattern
+Clean layered architecture with dependency injection:
+```
+HTTP Handlers → Services → Repositories → Database
+```
+
+## Key Directories
+
+### Backend (`backend/`)
+- `cmd/server/main.go` - Application entry point, dependency injection, route setup
+- `internal/config/` - Environment variable configuration
+- `internal/database/` - DB connection, embedded SQL migrations
+- `internal/handlers/` - HTTP request handlers (PublicHandler, AuthHandler, CreatorHandler, AdminHandler, WebhookHandler)
+- `internal/services/` - Business logic (AuthService, EventService, PaymentService, UploadService, VisitorService)
+- `internal/repository/` - Data access layer (Creator, Event, Payment, Admin, Location, EventType, EntranceType, Visitor repositories)
+- `internal/models/` - Data models and DTOs
+- `internal/utils/` - Utility functions
+
+### Frontend (`frontend/`)
+- `public/` - HTML pages (index.html, event.html, creator/, admin/)
+- `js/` - JavaScript modules:
+  - `main.js` - API client, Auth object, Utils, Form helpers, Modal management
+  - `events.js` - Event listing, filtering, pagination
+  - `auth.js` - Login/register logic
+- `css/main.css` - Main stylesheet
+- `assets/` - Images, icons
+
+### Scripts (`scripts/`)
+- `init.sql` - Database schema
+- `seed_locations.sql` - 25 Bali locations
+- `seed_event_types.sql` - 25 event categories
+- `seed_entrance_types.sql` - Entrance type options
+- `seed_admin.sql` - Default admin user
+
+## Database Schema
+**Core Tables**:
+- `creators` - Event organizers (UUID id, email, password_hash)
+- `admins` - Platform administrators (UUID id, email, password_hash)
+- `events` - Event listings (UUID id, creator_id FK, location_id, event_type_id, is_paid, is_published)
+- `payments` - Stripe payment records (UUID id, event_id, creator_id, stripe_session_id, status)
+- `locations` - Bali areas (serial id, name)
+- `event_types` - Event categories (serial id, name)
+- `entrance_types` - Free/paid entrance (serial id, name)
+- `visitors` - Analytics tracking
+- `sessions` - JWT session tracking
+- `schema_migrations` - Migration version control
+
+**Relationships**:
+- Events belong to Creators (CASCADE delete)
+- Payments link Events to Creators
+- All tables have `created_at`, `updated_at` with automatic triggers
+
+## Important Patterns & Conventions
+
+### Code Structure
+1. **Repository Pattern**: Each entity has a dedicated repository in `internal/repository/`
+2. **Service Layer**: Business logic in `internal/services/` orchestrates repositories
+3. **Dependency Injection**: All dependencies injected in `main.go`
+4. **DTO Pattern**: Separate request/response models with `ToResponse()` methods
+
+### Naming Conventions
+- **Go**: PascalCase for exported, camelCase for unexported
+- **SQL**: snake_case for tables/columns
+- **Files**: lowercase with underscores (e.g., `event_service.go`)
+- **IDs**: UUIDs for user-facing entities, serial for reference data
+
+### Error Handling
+- Custom error types (e.g., `ErrInvalidCredentials`, `ErrPaymentNotFound`)
+- Wrapped errors with context using `fmt.Errorf`
+- Consistent HTTP status codes in handlers
+
+### Security Practices
+- Parameterized SQL queries (no string concatenation)
+- JWT tokens with 24hr expiry
+- bcrypt password hashing (cost 10)
+- Stripe webhook signature verification
+- CORS configuration for cross-origin requests
+- Non-root Docker user (zenbali:1001)
+
+### Business Logic
+**Payment Flow**:
+1. Creator creates event (unpaid, unpublished)
+2. Creator initiates payment → Stripe Checkout session
+3. Payment record created with "pending" status
+4. Stripe webhook confirms → event marked paid and published
+5. Event appears on public listing
+
+**Authentication Flow**:
+- JWT stored in localStorage (frontend)
+- Token in Authorization header: `Bearer <token>`
+- Middleware validates token on protected routes
+- Claims contain: user_id, email, user_type
+
+**Event Visibility**:
+- Must be both `is_paid=true` AND `is_published=true` for public listing
+- Creators see all their events regardless of status
+- Admins can override publish status
+
+## Common Commands (Makefile)
+```bash
+make setup           # Full local setup (Docker + migrations + seed)
+make docker-up       # Start PostgreSQL & Redis
+make migrate-up      # Run database migrations
+make seed           # Seed reference data
+make dev            # Run with go run (hot reload)
+make run            # Build and run
+make test           # Run tests
+make test-cover     # Run tests with coverage report
+make build-prod     # Production build (Linux, optimized)
+make deploy         # Deploy to GCP Cloud Run
+```
+
+## Development Workflow
+1. Start Docker services: `make docker-up`
+2. Run migrations: `make migrate-up`
+3. Seed data (first time): `make seed`
+4. Start server: `make dev`
+5. Access at http://localhost:8080
+
+## Environment Variables (.env)
+**Required variables**:
+- Server: `PORT`, `ENV`, `BASE_URL`
+- Database: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_SSL_MODE`
+- JWT: `JWT_SECRET` (32+ chars), `JWT_EXPIRY_HOURS`
+- Stripe: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_CENTS`
+- Storage: `UPLOAD_DIR` (local) or `GCS_BUCKET` (production)
+- Admin: `ADMIN_EMAIL`, `ADMIN_PASSWORD` (default credentials)
+
+## Important Files
+- `backend/cmd/server/main.go` - Start here to understand app initialization
+- `reference/API.md` - Complete API documentation
+- `docker-compose.yml` - Local PostgreSQL & Redis setup
+- `Dockerfile` - Multi-stage production image
+- `.env.example` - Environment variable template
+
+## Migration System
+- Embedded migrations using Go 1.16+ embed directive
+- Located in `backend/internal/database/migrations/`
+- Format: `YYYYMMDDHHMMSS_description.up.sql` and `.down.sql`
+- Auto-tracking in `schema_migrations` table
+- Run via: `make migrate-up` or `go run ./cmd/migrate up`
+
+## Frontend Architecture
+- **No build process** - vanilla JS served directly
+- **Module pattern** for organization
+- **localStorage** for JWT token storage
+- **Fetch API** for HTTP requests with auth headers
+- **Template literals** for dynamic HTML rendering
+
+## Deployment
+- **Platform**: GCP Cloud Run (asia-southeast1)
+- **Database**: Cloud SQL PostgreSQL
+- **Storage**: Cloud Storage (GCS) for event images
+- **Secrets**: Secret Manager for credentials
+- **CDN**: Cloudflare for DNS + SSL
+- **Container**: Multi-stage Docker (~20-30MB Alpine-based image)
+
+## Testing
+- Test files: `*_test.go` in same directory as code
+- Run tests: `make test`
+- Coverage: `make test-cover` (outputs `backend/coverage.html`)
+
+## Known Conventions
+1. **Don't over-engineer**: Keep solutions simple, avoid premature abstractions
+2. **File uploads**: Max 5MB per image, stored in `uploads/` (local) or GCS (prod)
+3. **CORS**: Configured for cross-origin requests in production
+4. **Static files**: Go server serves frontend files from `frontend/public/`
+5. **Graceful shutdown**: Handles SIGINT/SIGTERM with 30s timeout
+6. **Health checks**: `/api/health` endpoint for monitoring
+
+## API Endpoints Overview
+- **Public**: `/api/events`, `/api/events/{id}`, `/api/locations`, `/api/event-types`
+- **Creator** (auth required): `/api/creator/register`, `/api/creator/login`, `/api/creator/events`
+- **Admin** (admin auth): `/api/admin/login`, `/api/admin/dashboard`, `/api/admin/events`
+- **Webhooks**: `/api/webhooks/stripe` (Stripe payment notifications)
+
+## Development Notes
+- **migrations**: Use embedded Go migrations, not golang-migrate CLI
+- **seed data**: Run after migrations, includes 25 locations + 25 event types
+- **admin access**: Default admin created via `seed_admin.sql`
+- **Stripe testing**: Use test keys (sk_test_...) for development
+- **local storage**: Images saved to `./uploads/` in dev environment

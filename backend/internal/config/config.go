@@ -55,7 +55,10 @@ type AdminConfig struct {
 
 func Load() (*Config, error) {
 	// Load .env file if exists (development)
-	_ = godotenv.Load()
+	// Try current directory first, then parent directory
+	if err := godotenv.Load(); err != nil {
+		_ = godotenv.Load("../.env")
+	}
 
 	cfg := &Config{
 		Port:    getEnv("PORT", "8080"),

@@ -123,9 +123,9 @@
                                             </td>
                                             <td>
                                                 <div class="d-flex gap-1" style="flex-wrap: wrap;">
+                                                    <a href="/event.html?id=${event.id}" target="_blank" class="btn btn-sm btn-outline">View</a>
                                                     <a href="/creator/edit-event.html?id=${event.id}" class="btn btn-sm btn-secondary">Edit</a>
                                                     ${!event.is_paid ? `<button onclick="payForEvent('${event.id}')" class="btn btn-sm btn-primary">Pay $10</button>` : ''}
-                                                    ${event.is_published ? `<a href="/event.html?id=${event.id}" target="_blank" class="btn btn-sm btn-outline">View</a>` : ''}
                                                     <button onclick="deleteEvent('${event.id}', '${Utils.escapeHtml(event.title)}')" class="btn btn-sm btn-danger">Delete</button>
                                                 </div>
                                             </td>

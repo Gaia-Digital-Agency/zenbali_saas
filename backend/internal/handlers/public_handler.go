@@ -125,10 +125,14 @@ func (h *PublicHandler) GetEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Only show published events to public
+	// Only show published events to public, unless the viewer is the creator
 	if !event.IsPublished {
-		utils.NotFound(w, "Event not found")
-		return
+		// Check if the request has a valid creator token and they own this event
+		creator := GetCreatorFromContext(r.Context())
+		if creator == nil || creator.ID != event.CreatorID {
+			utils.NotFound(w, "Event not found")
+			return
+		}
 	}
 
 	utils.Success(w, event.ToResponse())

@@ -53,7 +53,7 @@ func (r *EventRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Ev
 	event := &models.Event{}
 	query := `
 		SELECT
-			e.id, e.creator_id, e.title, e.event_date, e.event_time, e.location_id,
+			e.id, e.creator_id, e.title, e.event_date, e.event_time::text, e.location_id,
 			e.event_type_id, e.duration, e.entrance_type_id, e.entrance_fee,
 			e.participant_group_type, e.lead_by,
 			e.contact_email, e.contact_mobile, e.notes, e.image_url,
@@ -214,7 +214,7 @@ func (r *EventRepository) List(ctx context.Context, filter models.EventListFilte
 	// Data query
 	selectQuery := `
 		SELECT
-			e.id, e.creator_id, e.title, e.event_date, e.event_time, e.location_id,
+			e.id, e.creator_id, e.title, e.event_date, e.event_time::text, e.location_id,
 			e.event_type_id, e.duration, e.entrance_type_id, e.entrance_fee,
 			e.participant_group_type, e.lead_by,
 			e.contact_email, e.contact_mobile, e.notes, e.image_url,
@@ -266,7 +266,7 @@ func (r *EventRepository) Count(ctx context.Context) (total, published, upcoming
 func (r *EventRepository) GetRecent(ctx context.Context, limit int) ([]*models.Event, error) {
 	query := `
 		SELECT
-			e.id, e.creator_id, e.title, e.event_date, e.event_time, e.location_id,
+			e.id, e.creator_id, e.title, e.event_date, e.event_time::text, e.location_id,
 			e.event_type_id, e.duration, e.entrance_type_id, e.entrance_fee,
 			e.participant_group_type, e.lead_by,
 			e.contact_email, e.contact_mobile, e.notes, e.image_url,

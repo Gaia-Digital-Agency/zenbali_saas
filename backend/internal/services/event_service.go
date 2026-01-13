@@ -36,6 +36,31 @@ func (s *EventService) Create(ctx context.Context, creatorID uuid.UUID, req *mod
 		eventTime = &req.EventTime
 	}
 
+	var duration *string
+	if req.Duration != "" {
+		duration = &req.Duration
+	}
+
+	var participantGroupType *string
+	if req.ParticipantGroupType != "" {
+		participantGroupType = &req.ParticipantGroupType
+	}
+
+	var leadBy *string
+	if req.LeadBy != "" {
+		leadBy = &req.LeadBy
+	}
+
+	var contactMobile *string
+	if req.ContactMobile != "" {
+		contactMobile = &req.ContactMobile
+	}
+
+	var notes *string
+	if req.Notes != "" {
+		notes = &req.Notes
+	}
+
 	event := &models.Event{
 		CreatorID:            creatorID,
 		Title:                req.Title,
@@ -43,14 +68,14 @@ func (s *EventService) Create(ctx context.Context, creatorID uuid.UUID, req *mod
 		EventTime:            eventTime,
 		LocationID:           req.LocationID,
 		EventTypeID:          req.EventTypeID,
-		Duration:             req.Duration,
+		Duration:             duration,
 		EntranceTypeID:       req.EntranceTypeID,
 		EntranceFee:          req.EntranceFee,
-		ParticipantGroupType: req.ParticipantGroupType,
-		LeadBy:               req.LeadBy,
+		ParticipantGroupType: participantGroupType,
+		LeadBy:               leadBy,
 		ContactEmail:         req.ContactEmail,
-		ContactMobile:        req.ContactMobile,
-		Notes:                req.Notes,
+		ContactMobile:        contactMobile,
+		Notes:                notes,
 	}
 
 	if err := s.repos.Event.Create(ctx, event); err != nil {
@@ -112,7 +137,7 @@ func (s *EventService) Update(ctx context.Context, id, creatorID uuid.UUID, req 
 		event.EventTypeID = req.EventTypeID
 	}
 	if req.Duration != "" {
-		event.Duration = req.Duration
+		event.Duration = &req.Duration
 	}
 	if req.EntranceTypeID > 0 {
 		event.EntranceTypeID = req.EntranceTypeID
@@ -124,16 +149,16 @@ func (s *EventService) Update(ctx context.Context, id, creatorID uuid.UUID, req 
 		event.ContactEmail = req.ContactEmail
 	}
 	if req.ContactMobile != "" {
-		event.ContactMobile = req.ContactMobile
+		event.ContactMobile = &req.ContactMobile
 	}
 	if req.Notes != "" {
-		event.Notes = req.Notes
+		event.Notes = &req.Notes
 	}
 	if req.ParticipantGroupType != "" {
-		event.ParticipantGroupType = req.ParticipantGroupType
+		event.ParticipantGroupType = &req.ParticipantGroupType
 	}
 	if req.LeadBy != "" {
-		event.LeadBy = req.LeadBy
+		event.LeadBy = &req.LeadBy
 	}
 
 	if err := s.repos.Event.Update(ctx, event); err != nil {

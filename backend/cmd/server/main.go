@@ -94,10 +94,12 @@ func main() {
 
 		// Public routes
 		r.Get("/events", h.Public.ListEvents)
-		r.Get("/events/{id}", h.Public.GetEvent)
 		r.Get("/locations", h.Public.ListLocations)
 		r.Get("/event-types", h.Public.ListEventTypes)
 		r.Get("/entrance-types", h.Public.ListEntranceTypes)
+
+		// Event detail with optional auth (allows creators to preview their unpublished events)
+		r.With(h.Auth.OptionalCreatorAuthMiddleware).Get("/events/{id}", h.Public.GetEvent)
 
 		// Visitor tracking
 		r.Post("/visitors", h.Visitor.TrackVisitor)

@@ -7,26 +7,26 @@ import (
 )
 
 type Event struct {
-	ID                  uuid.UUID `json:"id"`
-	CreatorID           uuid.UUID `json:"creator_id"`
-	Title               string    `json:"title"`
-	EventDate           time.Time `json:"event_date"`
-	EventTime           *string   `json:"event_time,omitempty"`
-	LocationID          int       `json:"location_id"`
-	EventTypeID         int       `json:"event_type_id"`
-	Duration            string    `json:"duration"`
-	EntranceTypeID      int       `json:"entrance_type_id"`
-	EntranceFee         float64   `json:"entrance_fee"`
-	ParticipantGroupType string    `json:"participant_group_type,omitempty"`
-	LeadBy              string    `json:"lead_by,omitempty"`
-	ContactEmail        string    `json:"contact_email"`
-	ContactMobile       string    `json:"contact_mobile"`
-	Notes               string    `json:"notes"`
-	ImageURL            string    `json:"image_url"`
-	IsPaid              bool      `json:"is_paid"`
-	IsPublished         bool      `json:"is_published"`
-	CreatedAt           time.Time `json:"created_at"`
-	UpdatedAt           time.Time `json:"updated_at"`
+	ID                   uuid.UUID `json:"id"`
+	CreatorID            uuid.UUID `json:"creator_id"`
+	Title                string    `json:"title"`
+	EventDate            time.Time `json:"event_date"`
+	EventTime            *string   `json:"event_time,omitempty"`
+	LocationID           int       `json:"location_id"`
+	EventTypeID          int       `json:"event_type_id"`
+	Duration             *string   `json:"duration,omitempty"`
+	EntranceTypeID       int       `json:"entrance_type_id"`
+	EntranceFee          float64   `json:"entrance_fee"`
+	ParticipantGroupType *string   `json:"participant_group_type,omitempty"`
+	LeadBy               *string   `json:"lead_by,omitempty"`
+	ContactEmail         string    `json:"contact_email"`
+	ContactMobile        *string   `json:"contact_mobile,omitempty"`
+	Notes                *string   `json:"notes,omitempty"`
+	ImageURL             *string   `json:"image_url,omitempty"`
+	IsPaid               bool      `json:"is_paid"`
+	IsPublished          bool      `json:"is_published"`
+	CreatedAt            time.Time `json:"created_at"`
+	UpdatedAt            time.Time `json:"updated_at"`
 
 	// Joined fields
 	CreatorName      string `json:"creator_name,omitempty"`
@@ -39,17 +39,17 @@ type Event struct {
 type EventCreateRequest struct {
 	Title                string  `json:"title" validate:"required,min=3,max=255"`
 	EventDate            string  `json:"event_date" validate:"required"`
-	EventTime            string  `json:"event_time"`
+	EventTime            string  `json:"event_time" validate:"required"`
 	LocationID           int     `json:"location_id" validate:"required,min=1"`
 	EventTypeID          int     `json:"event_type_id" validate:"required,min=1"`
-	Duration             string  `json:"duration" validate:"max=100"`
+	Duration             string  `json:"duration" validate:"required,max=100"`
 	EntranceTypeID       int     `json:"entrance_type_id" validate:"required,min=1"`
 	EntranceFee          float64 `json:"entrance_fee" validate:"min=0"`
-	ParticipantGroupType string  `json:"participant_group_type" validate:"max=50"`
-	LeadBy               string  `json:"lead_by" validate:"max=255"`
+	ParticipantGroupType string  `json:"participant_group_type" validate:"required,max=50"`
+	LeadBy               string  `json:"lead_by" validate:"required,max=255"`
 	ContactEmail         string  `json:"contact_email" validate:"required,email"`
-	ContactMobile        string  `json:"contact_mobile" validate:"max=50"`
-	Notes                string  `json:"notes" validate:"max=2000"`
+	ContactMobile        string  `json:"contact_mobile" validate:"required,max=50"`
+	Notes                string  `json:"notes" validate:"required,max=2000"`
 }
 
 type EventUpdateRequest struct {
@@ -122,6 +122,36 @@ func (e *Event) ToResponse() *EventResponse {
 		eventTime = *e.EventTime
 	}
 
+	duration := ""
+	if e.Duration != nil {
+		duration = *e.Duration
+	}
+
+	participantGroupType := ""
+	if e.ParticipantGroupType != nil {
+		participantGroupType = *e.ParticipantGroupType
+	}
+
+	leadBy := ""
+	if e.LeadBy != nil {
+		leadBy = *e.LeadBy
+	}
+
+	contactMobile := ""
+	if e.ContactMobile != nil {
+		contactMobile = *e.ContactMobile
+	}
+
+	notes := ""
+	if e.Notes != nil {
+		notes = *e.Notes
+	}
+
+	imageURL := ""
+	if e.ImageURL != nil {
+		imageURL = *e.ImageURL
+	}
+
 	return &EventResponse{
 		ID:                   e.ID,
 		Title:                e.Title,
@@ -131,16 +161,16 @@ func (e *Event) ToResponse() *EventResponse {
 		LocationID:           e.LocationID,
 		EventType:            e.EventTypeName,
 		EventTypeID:          e.EventTypeID,
-		Duration:             e.Duration,
+		Duration:             duration,
 		EntranceType:         e.EntranceTypeName,
 		EntranceTypeID:       e.EntranceTypeID,
 		EntranceFee:          e.EntranceFee,
-		ParticipantGroupType: e.ParticipantGroupType,
-		LeadBy:               e.LeadBy,
+		ParticipantGroupType: participantGroupType,
+		LeadBy:               leadBy,
 		ContactEmail:         e.ContactEmail,
-		ContactMobile:        e.ContactMobile,
-		Notes:                e.Notes,
-		ImageURL:             e.ImageURL,
+		ContactMobile:        contactMobile,
+		Notes:                notes,
+		ImageURL:             imageURL,
 		Organizer:            e.CreatorName,
 		OrganizationName:     e.OrganizationName,
 		IsPaid:               e.IsPaid,

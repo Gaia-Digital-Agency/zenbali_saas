@@ -204,6 +204,44 @@ func (h *AuthHandler) AdminAuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// OptionalCreatorAuthMiddleware attempts to authenticate a creator if a token is present,
+// but does not reject the request if no token is provided
+func (h *AuthHandler) OptionalCreatorAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := extractToken(r)
+		if token == "" {
+			// No token provided, continue without authentication
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		claims, err := h.services.Auth.ValidateToken(token)
+		if err != nil {
+			// Invalid token, continue without authentication
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if claims.UserType != "creator" {
+			// Not a creator token, continue without authentication
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		creator, err := h.services.Auth.GetCreatorByID(r.Context(), claims.UserID)
+		if err != nil || creator == nil || !creator.IsActive {
+			// Creator not found or inactive, continue without authentication
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Valid creator token, add to context
+		ctx := context.WithValue(r.Context(), ContextKeyCreator, creator)
+		ctx = context.WithValue(ctx, ContextKeyUserID, creator.ID)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 // Helper to get creator from context
 func GetCreatorFromContext(ctx context.Context) *models.Creator {
 	if creator, ok := ctx.Value(ContextKeyCreator).(*models.Creator); ok {

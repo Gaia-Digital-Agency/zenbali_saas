@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -93,6 +94,7 @@ func (h *CreatorHandler) ListEvents(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.services.Event.ListByCreator(r.Context(), creator.ID, page, limit, includePast)
 	if err != nil {
+		log.Printf("ERROR listing events for creator %s: %v", creator.ID, err)
 		utils.InternalError(w, "Failed to fetch events")
 		return
 	}
@@ -133,6 +135,10 @@ func (h *CreatorHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 		utils.BadRequest(w, "Event date is required")
 		return
 	}
+	if req.EventTime == "" {
+		utils.BadRequest(w, "Event time is required")
+		return
+	}
 	if req.LocationID <= 0 {
 		utils.BadRequest(w, "Location is required")
 		return
@@ -141,12 +147,32 @@ func (h *CreatorHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 		utils.BadRequest(w, "Event type is required")
 		return
 	}
+	if req.Duration == "" {
+		utils.BadRequest(w, "Duration is required")
+		return
+	}
 	if req.EntranceTypeID <= 0 {
 		utils.BadRequest(w, "Entrance type is required")
 		return
 	}
+	if req.ParticipantGroupType == "" {
+		utils.BadRequest(w, "Participant group type is required")
+		return
+	}
+	if req.LeadBy == "" {
+		utils.BadRequest(w, "Lead by is required")
+		return
+	}
 	if req.ContactEmail == "" {
 		utils.BadRequest(w, "Contact email is required")
+		return
+	}
+	if req.ContactMobile == "" {
+		utils.BadRequest(w, "Contact mobile is required")
+		return
+	}
+	if req.Notes == "" {
+		utils.BadRequest(w, "Event description is required")
 		return
 	}
 
@@ -156,6 +182,7 @@ func (h *CreatorHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 			utils.BadRequest(w, "Invalid date format. Use YYYY-MM-DD")
 			return
 		}
+		log.Printf("ERROR creating event for creator %s: %v", creator.ID, err)
 		utils.InternalError(w, "Failed to create event")
 		return
 	}

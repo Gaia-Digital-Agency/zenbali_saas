@@ -212,9 +212,13 @@ zenbali/
    - **Main Page:** http://localhost:8080
    - **API Health:** http://localhost:8080/api/health
    - **Creator Portal:** http://localhost:8080/creator/login.html
+     - Email: `creator@test.com`
+     - Password: `admin123`
    - **Admin Panel:** http://localhost:8080/admin/login.html
      - Email: `admin@zenbali.org`
      - Password: `admin123`
+
+   > **Note:** See [test.md](test.md) for detailed testing instructions.
 
 4. **Stop the application**
    ```bash

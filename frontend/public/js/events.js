@@ -118,6 +118,12 @@ function loadFiltersFromURL() {
         if (input) input.value = dateFrom;
     }
 
+    const dateTo = params.get('date_to');
+    if (dateTo) {
+        const input = document.getElementById('filterDateTo');
+        if (input) input.value = dateTo;
+    }
+
     const search = params.get('search');
     if (search) {
         const input = document.getElementById('filterSearch');
@@ -144,6 +150,9 @@ function saveFiltersToURL() {
 
     const dateFrom = document.getElementById('filterDateFrom')?.value;
     if (dateFrom) params.date_from = dateFrom;
+
+    const dateTo = document.getElementById('filterDateTo')?.value;
+    if (dateTo) params.date_to = dateTo;
 
     const search = document.getElementById('filterSearch')?.value;
     if (search) params.search = search;
@@ -175,7 +184,23 @@ async function loadEvents() {
         if (entranceTypeId) params.append('entrance_type_id', entranceTypeId);
 
         const dateFrom = document.getElementById('filterDateFrom')?.value;
-        if (dateFrom) params.append('date_from', dateFrom);
+        if (dateFrom) {
+            params.append('date_from', dateFrom);
+        } else {
+            // Default to today
+            const today = new Date().toISOString().split('T')[0];
+            params.append('date_from', today);
+        }
+
+        const dateTo = document.getElementById('filterDateTo')?.value;
+        if (dateTo) {
+            params.append('date_to', dateTo);
+        } else {
+            // Default to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            params.append('date_to', tomorrow.toISOString().split('T')[0]);
+        }
 
         const search = document.getElementById('filterSearch')?.value;
         if (search) params.append('search', search);
@@ -213,17 +238,17 @@ async function loadEvents() {
 }
 
 function renderEventCard(event) {
-    const imageUrl = event.image_url || '/assets/images/placeholder.jpg';
+    const imageUrl = (event.image_url && event.image_url.trim()) ? event.image_url : '/assets/images/placeholder.jpg';
     const eventDate = Utils.formatDate(event.event_date);
-    const price = event.entrance_fee > 0 
-        ? Utils.formatCurrency(event.entrance_fee) 
+    const price = event.entrance_fee > 0
+        ? Utils.formatCurrency(event.entrance_fee)
         : 'Free';
 
     return `
         <div class="event-card">
             <div class="event-card-image">
-                <img src="${Utils.escapeHtml(imageUrl)}" alt="${Utils.escapeHtml(event.title)}" 
-                     onerror="this.src='/assets/images/placeholder.jpg'">
+                <img src="${Utils.escapeHtml(imageUrl)}" alt="${Utils.escapeHtml(event.title)}"
+                     onerror="this.onerror=null; this.src='/assets/images/placeholder.jpg'">
                 <span class="event-card-badge">${Utils.escapeHtml(event.event_type)}</span>
             </div>
             <div class="event-card-content">

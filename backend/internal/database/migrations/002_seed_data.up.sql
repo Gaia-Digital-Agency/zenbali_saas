@@ -78,3 +78,41 @@ INSERT INTO entrance_types (name, slug) VALUES
     ('By Registration Only', 'registration-only'),
     ('Members Only', 'members-only')
 ON CONFLICT (slug) DO NOTHING;
+
+-- ===========================================
+-- Admin User (password: admin123)
+-- ===========================================
+
+INSERT INTO admins (email, password_hash, name, is_active) VALUES
+    ('admin@zenbali.org', '$2a$10$7E1R11SN79ghwafaxYckH./LZWgy4TagcjIgMJE94ByW5WACFTCD.', 'Admin', true)
+ON CONFLICT (email) DO NOTHING;
+
+-- ===========================================
+-- Test Creator (password: admin123)
+-- ===========================================
+
+INSERT INTO creators (id, name, organization_name, email, mobile, password_hash, is_verified, is_active) VALUES
+    ('98d34804-bf30-49b1-b578-af23b6b7c124', 'Test Creator', 'Test Organization', 'creator@test.com', '+628123456789', '$2a$10$7E1R11SN79ghwafaxYckH./LZWgy4TagcjIgMJE94ByW5WACFTCD.', true, true)
+ON CONFLICT (email) DO NOTHING;
+
+-- ===========================================
+-- Sample Paid & Published Event
+-- ===========================================
+
+INSERT INTO events (creator_id, title, event_date, event_time, location_id, event_type_id, duration, entrance_type_id, entrance_fee, contact_email, contact_mobile, notes, is_paid, is_published)
+SELECT
+    '98d34804-bf30-49b1-b578-af23b6b7c124'::uuid,
+    'Sample Yoga Session in Ubud',
+    CURRENT_DATE + INTERVAL '1 day',
+    '09:00:00',
+    (SELECT id FROM locations WHERE slug = 'ubud'),
+    (SELECT id FROM event_types WHERE slug = 'yoga'),
+    '2 hours',
+    (SELECT id FROM entrance_types WHERE slug = 'prepaid-online'),
+    150000,
+    'creator@test.com',
+    '+628123456789',
+    'This is a sample yoga session for testing purposes.',
+    true,
+    true
+WHERE NOT EXISTS (SELECT 1 FROM events WHERE title = 'Sample Yoga Session in Ubud');

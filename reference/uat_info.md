@@ -26,7 +26,7 @@ make dev
 
 ✅ **Test Credentials Ready**
 - Admin: `admin@zenbali.org` / `admin123`
-- Creator: You'll create during testing
+- Creator: `creator@test.com` / `admin123`
 
 ## Test Environment URLs
 
@@ -1157,10 +1157,25 @@ Event remains unpublished
 - **Email**: admin@zenbali.org
 - **Password**: admin123
 
-### Sample Event Data
-- **Locations**: Ubud, Canggu, Seminyak, Sanur
-- **Event Types**: Yoga, Healing, Meditation, Retreat
-- **Entrance Types**: Free, Prepaid Online, Pay at Site
+### Test Creator Credentials
+- **Email**: creator@test.com
+- **Password**: admin123
+- **Name**: Test Creator
+- **Organization**: Test Organization
+
+### Pre-seeded Sample Event
+A sample event is automatically created by the seed data:
+- **Title**: Sample Yoga Session in Ubud
+- **Date**: Tomorrow's date (dynamically set)
+- **Location**: Ubud
+- **Type**: Yoga
+- **Status**: Paid and Published (visible on landing page)
+- **Creator**: creator@test.com
+
+### Reference Data
+- **Locations**: Ubud, Canggu, Seminyak, Sanur, etc. (25 total)
+- **Event Types**: Yoga, Healing, Meditation, Retreat, etc. (25 total)
+- **Entrance Types**: Free, Prepaid Online, Pay at Site, etc. (6 total)
 
 ---
 

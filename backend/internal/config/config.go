@@ -44,9 +44,13 @@ type StripeConfig struct {
 }
 
 type UploadConfig struct {
-	Dir        string
-	MaxSizeMB  int
-	AllowedExt []string
+	Backend       string
+	Dir           string
+	MaxSizeMB     int
+	AllowedExt    []string
+	GCSBucket     string
+	GCSPrefix     string
+	GCSPublicBase string
 }
 
 type AdminConfig struct {
@@ -91,9 +95,13 @@ func Load() (*Config, error) {
 			PriceCents:     int64(getEnvInt("STRIPE_PRICE_CENTS", 500)),
 		},
 		Upload: UploadConfig{
-			Dir:        getEnv("UPLOAD_DIR", "./uploads"),
-			MaxSizeMB:  getEnvInt("MAX_UPLOAD_SIZE_MB", 5),
-			AllowedExt: []string{".jpg", ".jpeg", ".png", ".webp"},
+			Backend:       getEnv("UPLOAD_BACKEND", "local"),
+			Dir:           getEnv("UPLOAD_DIR", "./uploads"),
+			MaxSizeMB:     getEnvInt("MAX_UPLOAD_SIZE_MB", 5),
+			AllowedExt:    []string{".jpg", ".jpeg", ".png", ".webp"},
+			GCSBucket:     getEnv("GCS_BUCKET", ""),
+			GCSPrefix:     getEnv("GCS_PREFIX", ""),
+			GCSPublicBase: getEnv("GCS_PUBLIC_BASE_URL", ""),
 		},
 		Admin: AdminConfig{
 			Email:    getEnv("ADMIN_EMAIL", "admin@zenbali.org"),
@@ -105,9 +113,15 @@ func Load() (*Config, error) {
 		},
 	}
 
-	// Create upload directory if not exists
-	if err := os.MkdirAll(cfg.Upload.Dir, 0755); err != nil {
-		return nil, fmt.Errorf("failed to create upload directory: %w", err)
+	if cfg.Upload.Backend == "gcs" && cfg.Upload.GCSBucket == "" {
+		return nil, fmt.Errorf("GCS_BUCKET is required when UPLOAD_BACKEND=gcs")
+	}
+
+	// Create upload directory if not exists for local storage.
+	if cfg.Upload.Backend != "gcs" {
+		if err := os.MkdirAll(cfg.Upload.Dir, 0755); err != nil {
+			return nil, fmt.Errorf("failed to create upload directory: %w", err)
+		}
 	}
 
 	return cfg, nil

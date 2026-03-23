@@ -1,5 +1,15 @@
 # Zen Bali Database Access Guide
 
+> Current verified local state as of 2026-03-23:
+> - App: `http://localhost:8081`
+> - API: `http://localhost:8081/api`
+> - PostgreSQL host port: `5433`
+> - Admin: `admin@zenbali.org` / `Teameditor@123`
+> - Creator: `creator@zenbali.org` / `admin123`
+> - Event posting fee: `$5 USD` (`500` cents)
+> - Seed base state: 1 admin, 1 creator, 1 sample published event, 0 payments
+
+
 ## Database Status
 ✅ **Database is SET UP and RUNNING**
 
@@ -8,7 +18,7 @@
 ### Connection Details
 - **Database Type**: PostgreSQL
 - **Host**: localhost
-- **Port**: 5432
+- **Port**: 5433
 - **Database Name**: zenbali
 - **Username**: zenbali
 - **Password**: zenbali_dev_password
@@ -16,7 +26,7 @@
 
 ### Connection String
 ```
-postgres://zenbali:zenbali_dev_password@localhost:5432/zenbali?sslmode=disable
+postgres://zenbali:zenbali_dev_password@localhost:5433/zenbali?sslmode=disable
 ```
 
 ## Accessing the Database
@@ -25,14 +35,14 @@ postgres://zenbali:zenbali_dev_password@localhost:5432/zenbali?sslmode=disable
 
 #### 1. Connect to Database
 ```bash
-psql -h localhost -p 5432 -U zenbali -d zenbali
+psql -h localhost -p 5433 -U zenbali -d zenbali
 ```
 
 When prompted for password, enter: `zenbali_dev_password`
 
 Or use this one-liner (password in command):
 ```bash
-PGPASSWORD=zenbali_dev_password psql -h localhost -p 5432 -U zenbali -d zenbali
+PGPASSWORD=zenbali_dev_password psql -h localhost -p 5433 -U zenbali -d zenbali
 ```
 
 #### 2. Common psql Commands
@@ -50,7 +60,7 @@ Once connected:
 #### Option 1: pgAdmin
 - **Download**: https://www.pgadmin.org/download/
 - **Host**: localhost
-- **Port**: 5432
+- **Port**: 5433
 - **Database**: zenbali
 - **Username**: zenbali
 - **Password**: zenbali_dev_password
@@ -59,7 +69,7 @@ Once connected:
 - **Download**: https://tableplus.com/
 - **Connection Type**: PostgreSQL
 - **Host**: localhost
-- **Port**: 5432
+- **Port**: 5433
 - **Database**: zenbali
 - **User**: zenbali
 - **Password**: zenbali_dev_password
@@ -183,7 +193,7 @@ The connection string (DSN) is built at [backend/internal/config/config.go:103-1
 All database settings are in `.env`:
 ```env
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5433
 DB_USER=zenbali
 DB_PASSWORD=zenbali_dev_password
 DB_NAME=zenbali
@@ -203,7 +213,7 @@ VALUES ('admin@zenbali.org', 'hashed_password_here', 'Admin User');
 ### Create a Test Creator
 ```sql
 INSERT INTO creators (name, email, password_hash, is_verified)
-VALUES ('Test Creator', 'creator@test.com', 'hashed_password_here', true);
+VALUES ('Test Creator', 'creator@zenbali.org', 'hashed_password_here', true);
 ```
 
 ### View Recent Visitors
@@ -256,7 +266,7 @@ createdb -h localhost -U zenbali zenbali
 - Change all passwords in production
 - Enable SSL in production
 - Use environment variables or secret management in production
-- The current admin password (`admin123`) should be changed immediately
+- The current admin password (`Teameditor@123`) should be changed immediately
 
 ## Additional Resources
 

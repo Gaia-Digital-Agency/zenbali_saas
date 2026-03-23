@@ -1,5 +1,15 @@
 # Zen Bali User Acceptance Testing (UAT) Guide
 
+> Current verified local state as of 2026-03-23:
+> - App: `http://localhost:8081`
+> - API: `http://localhost:8081/api`
+> - PostgreSQL host port: `5433`
+> - Admin: `admin@zenbali.org` / `Teameditor@123`
+> - Creator: `creator@zenbali.org` / `admin123`
+> - Event posting fee: `$5 USD` (`500` cents)
+> - Seed base state: 1 admin, 1 creator, 1 sample published event, 0 payments
+
+
 ## Overview
 
 This guide provides step-by-step instructions for testing the Zen Bali platform as three different user types:
@@ -14,31 +24,31 @@ Before starting UAT:
 ✅ **Server Running**
 ```bash
 make dev
-# Server should be running on http://localhost:8080
+# Server should be running on http://localhost:8081
 ```
 
 ✅ **Docker Services Active**
-- PostgreSQL: Running on port 5432
+- PostgreSQL: Running on port 5433
 - Redis: Running on port 6379
 
 ✅ **Database Seeded**
 - Reference data loaded (locations, event types, entrance types)
 
 ✅ **Test Credentials Ready**
-- Admin: `admin@zenbali.org` / `admin123`
-- Creator: `creator@test.com` / `admin123`
+- Admin: `admin@zenbali.org` / `Teameditor@123`
+- Creator: `creator@zenbali.org` / `admin123`
 
 ## Test Environment URLs
 
 | Page | URL |
 |------|-----|
-| **Home Page** | http://localhost:8080 |
-| **Event Details** | http://localhost:8080/event.html?id={event_id} |
-| **Creator Login** | http://localhost:8080/creator/login.html |
-| **Creator Register** | http://localhost:8080/creator/register.html |
-| **Creator Dashboard** | http://localhost:8080/creator/dashboard.html |
-| **Admin Login** | http://localhost:8080/admin/login.html |
-| **Admin Dashboard** | http://localhost:8080/admin/dashboard.html |
+| **Home Page** | http://localhost:8081 |
+| **Event Details** | http://localhost:8081/event.html?id={event_id} |
+| **Creator Login** | http://localhost:8081/creator/login.html |
+| **Creator Register** | http://localhost:8081/creator/register.html |
+| **Creator Dashboard** | http://localhost:8081/creator/dashboard.html |
+| **Admin Login** | http://localhost:8081/admin/login.html |
+| **Admin Dashboard** | http://localhost:8081/admin/dashboard.html |
 
 ---
 
@@ -52,7 +62,7 @@ make dev
 **Objective**: Verify home page loads and displays correctly
 
 **Steps**:
-1. Open browser and navigate to http://localhost:8080
+1. Open browser and navigate to http://localhost:8081
 2. Observe the page layout
 
 **Expected Results**:
@@ -200,7 +210,7 @@ make dev
 **Objective**: Register a new creator account
 
 **Steps**:
-1. Navigate to http://localhost:8080/creator/register.html
+1. Navigate to http://localhost:8081/creator/register.html
 2. Fill in registration form:
    - **Name**: "Test Creator"
    - **Organization**: "Bali Yoga Studio"
@@ -235,7 +245,7 @@ SELECT * FROM creators WHERE email = 'testcreator@example.com';
 **Objective**: Login with creator credentials
 
 **Steps**:
-1. Navigate to http://localhost:8080/creator/login.html
+1. Navigate to http://localhost:8081/creator/login.html
 2. Enter credentials:
    - **Email**: "testcreator@example.com"
    - **Password**: "password123"
@@ -387,7 +397,7 @@ WHERE title = 'Morning Yoga Session';
 - ✅ Upload progress shown
 - ✅ Image uploaded successfully
 - ✅ Image displayed on event
-- ✅ Image saved to `/uploads` directory
+- ✅ Image saved to the configured upload backend
 - ✅ Image URL stored in database
 
 **Validation Tests**:
@@ -567,10 +577,10 @@ Successfully processed payment for session: cs_test_xxxxx
 **Objective**: Login as admin
 
 **Steps**:
-1. Navigate to http://localhost:8080/admin/login.html
+1. Navigate to http://localhost:8081/admin/login.html
 2. Enter credentials:
    - **Email**: "admin@zenbali.org"
-   - **Password**: "admin123"
+   - **Password**: "Teameditor@123"
 3. Click "Login"
 
 **Expected Results**:
@@ -934,29 +944,29 @@ Successfully processed payment for session: cs_test_xxxxx
 
 **Get All Published Events:**
 ```bash
-curl http://localhost:8080/api/events
+curl http://localhost:8081/api/events
 ```
 
 **Get Single Event:**
 ```bash
-curl http://localhost:8080/api/events/{event_id}
+curl http://localhost:8081/api/events/{event_id}
 ```
 
 **Get Locations:**
 ```bash
-curl http://localhost:8080/api/locations
+curl http://localhost:8081/api/locations
 ```
 
 **Get Event Types:**
 ```bash
-curl http://localhost:8080/api/event-types
+curl http://localhost:8081/api/event-types
 ```
 
 ### Creator Endpoints
 
 **Register:**
 ```bash
-curl -X POST http://localhost:8080/api/creator/register \
+curl -X POST http://localhost:8081/api/creator/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "API Test Creator",
@@ -967,7 +977,7 @@ curl -X POST http://localhost:8080/api/creator/register \
 
 **Login:**
 ```bash
-curl -X POST http://localhost:8080/api/creator/login \
+curl -X POST http://localhost:8081/api/creator/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "apitest@example.com",
@@ -979,7 +989,7 @@ curl -X POST http://localhost:8080/api/creator/login \
 ```bash
 TOKEN="your_jwt_token_here"
 
-curl -X POST http://localhost:8080/api/creator/events \
+curl -X POST http://localhost:8081/api/creator/events \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -994,7 +1004,7 @@ curl -X POST http://localhost:8080/api/creator/events \
 
 **Get My Events:**
 ```bash
-curl http://localhost:8080/api/creator/events \
+curl http://localhost:8081/api/creator/events \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -1002,11 +1012,11 @@ curl http://localhost:8080/api/creator/events \
 
 **Login:**
 ```bash
-curl -X POST http://localhost:8080/api/admin/login \
+curl -X POST http://localhost:8081/api/admin/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@zenbali.org",
-    "password": "admin123"
+    "password": "Teameditor@123"
   }'
 ```
 
@@ -1014,7 +1024,7 @@ curl -X POST http://localhost:8080/api/admin/login \
 ```bash
 ADMIN_TOKEN="admin_jwt_token_here"
 
-curl http://localhost:8080/api/admin/dashboard \
+curl http://localhost:8081/api/admin/dashboard \
   -H "Authorization: Bearer $ADMIN_TOKEN"
 ```
 
@@ -1067,7 +1077,7 @@ Measure and record:
 
 **Test Case 8.1: Access Protected Routes Without Token**
 ```bash
-curl http://localhost:8080/api/creator/events
+curl http://localhost:8081/api/creator/events
 # Should return: 401 Unauthorized
 ```
 
@@ -1112,7 +1122,7 @@ curl http://localhost:8080/api/creator/events
 **Bug ID**: BUG-001
 **Severity**: High / Medium / Low
 **Test Case**: 2.9
-**Environment**: Development (localhost:8080)
+**Environment**: Development (localhost:8081)
 
 **Description**:
 Payment webhook not processing
@@ -1155,10 +1165,10 @@ Event remains unpublished
 
 ### Default Admin Credentials
 - **Email**: admin@zenbali.org
-- **Password**: admin123
+- **Password**: Teameditor@123
 
 ### Test Creator Credentials
-- **Email**: creator@test.com
+- **Email**: creator@zenbali.org
 - **Password**: admin123
 - **Name**: Test Creator
 - **Organization**: Test Organization
@@ -1170,7 +1180,7 @@ A sample event is automatically created by the seed data:
 - **Location**: Ubud
 - **Type**: Yoga
 - **Status**: Paid and Published (visible on landing page)
-- **Creator**: creator@test.com
+- **Creator**: creator@zenbali.org
 
 ### Reference Data
 - **Locations**: Ubud, Canggu, Seminyak, Sanur, etc. (25 total)
@@ -1189,7 +1199,7 @@ A sample event is automatically created by the seed data:
 **Issue**: Payment webhook not received
 - Ensure Stripe CLI is running
 - Check webhook secret in .env
-- Verify server is running on port 8080
+- Verify server is running on port 8081
 
 **Issue**: Events not displaying
 - Check is_published = true in database

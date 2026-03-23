@@ -1,5 +1,15 @@
 # Zen Bali Stripe Payment Integration Guide
 
+> Current verified local state as of 2026-03-23:
+> - App: `http://localhost:8081`
+> - API: `http://localhost:8081/api`
+> - PostgreSQL host port: `5433`
+> - Admin: `admin@zenbali.org` / `Teameditor@123`
+> - Creator: `creator@zenbali.org` / `admin123`
+> - Event posting fee: `$5 USD` (`500` cents)
+> - Seed base state: 1 admin, 1 creator, 1 sample published event, 0 payments
+
+
 ## Overview
 
 Zen Bali uses **Stripe** for payment processing. Creators pay **$5 USD per event posting**, and events are automatically published upon successful payment.
@@ -45,7 +55,7 @@ Located in `.env`:
 # Stripe Configuration (Test Keys)
 STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxx
 STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxx
-STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=
 STRIPE_PRICE_CENTS=500
 ```
 
@@ -134,8 +144,8 @@ Authorization: Bearer {creator_jwt_token}
 Content-Type: application/json
 
 {
-  "success_url": "http://localhost:8080/creator/payment-success.html?session_id={CHECKOUT_SESSION_ID}",
-  "cancel_url": "http://localhost:8080/creator/payment-cancel.html"
+  "success_url": "http://localhost:8081/creator/payment-success.html?session_id={CHECKOUT_SESSION_ID}",
+  "cancel_url": "http://localhost:8081/creator/payment-cancel.html"
 }
 ```
 
@@ -271,11 +281,11 @@ make dev
 # or
 make run
 ```
-Your server should be running on `http://localhost:8080`
+Your server should be running on `http://localhost:8081`
 
 **4. In a separate terminal, start webhook listener** (while app is running):
 ```bash
-stripe listen --forward-to localhost:8080/api/webhooks/stripe
+stripe listen --forward-to localhost:8081/api/webhooks/stripe
 ```
 
 This will output something like:
@@ -283,15 +293,23 @@ This will output something like:
 Ready! Your webhook signing secret is whsec_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-**5. Copy the webhook secret** and update your `.env` file:
+**5. Copy the webhook secret** and update your deployed environment if you are exposing a real webhook endpoint:
 ```bash
 STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxx
 ```
 
-**6. Restart your app server** (to load the new secret):
+For local development on this machine, the current `.env` intentionally keeps:
 ```bash
-# Stop the server (Ctrl+C) and restart
-make dev
+STRIPE_WEBHOOK_SECRET=
+```
+
+This works with the current local success-page verification flow.
+
+**6. Restart your app server** (if you changed environment variables):
+```bash
+# Stop the server and restart
+./stop.sh
+./start.sh
 ```
 
 **Development Workflow:**
@@ -301,9 +319,9 @@ You'll need **two terminal windows** running simultaneously:
 ```
 Terminal 1:                    Terminal 2:
 ─────────────                  ─────────────
-$ make dev
-Server running on :8080
-                              $ stripe listen --forward-to localhost:8080/api/webhooks/stripe
+$ ./start.sh
+Server running on :8081
+                              $ stripe listen --forward-to localhost:8081/api/webhooks/stripe
                               Ready! Your webhook signing secret is whsec_xxx...
 
                               (Webhooks forwarded here)
@@ -316,7 +334,7 @@ Payment processed
 - ⚠️ Keep both terminals running during development
 - ⚠️ The webhook secret from `stripe listen` is only valid while the listener is running
 - ⚠️ Each time you restart `stripe listen`, you get a new webhook secret
-- ✅ The webhook URL for development is: `http://localhost:8080/api/webhooks/stripe`
+- ✅ The webhook URL for development is: `http://localhost:8081/api/webhooks/stripe`
 
 **Alternative: Skip Webhook Verification in Dev** (Not Recommended)
 
@@ -469,13 +487,13 @@ brew install stripe/stripe-cli/stripe
 stripe login
 
 # Forward webhooks to local server
-stripe listen --forward-to localhost:8080/api/webhooks/stripe
+stripe listen --forward-to localhost:8081/api/webhooks/stripe
 
 # This will output a webhook signing secret like:
 # whsec_xxxxxxxxxxxxxxxxxxxxx
 
 # Update .env with the webhook secret
-STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxxx
+STRIPE_WEBHOOK_SECRET=x
 
 # Trigger test webhook
 stripe trigger checkout.session.completed
@@ -489,7 +507,7 @@ In development, if `STRIPE_WEBHOOK_SECRET` is empty, the webhook handler accepts
 
 1. **Create Event**
    ```bash
-   curl -X POST http://localhost:8080/api/creator/events \
+   curl -X POST http://localhost:8081/api/creator/events \
      -H "Authorization: Bearer {creator_token}" \
      -H "Content-Type: application/json" \
      -d '{
@@ -504,12 +522,12 @@ In development, if `STRIPE_WEBHOOK_SECRET` is empty, the webhook handler accepts
 
 2. **Create Payment Session**
    ```bash
-   curl -X POST http://localhost:8080/api/creator/events/{event_id}/pay \
+   curl -X POST http://localhost:8081/api/creator/events/{event_id}/pay \
      -H "Authorization: Bearer {creator_token}" \
      -H "Content-Type: application/json" \
      -d '{
-       "success_url": "http://localhost:8080/success",
-       "cancel_url": "http://localhost:8080/cancel"
+       "success_url": "http://localhost:8081/success",
+       "cancel_url": "http://localhost:8081/cancel"
      }'
    ```
 
@@ -519,7 +537,7 @@ In development, if `STRIPE_WEBHOOK_SECRET` is empty, the webhook handler accepts
 
 5. **Verify event is published**
    ```bash
-   curl http://localhost:8080/api/events
+   curl http://localhost:8081/api/events
    ```
 
 ## Viewing Payments

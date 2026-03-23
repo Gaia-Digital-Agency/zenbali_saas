@@ -11,18 +11,19 @@ import (
 )
 
 var (
-	ErrEventNotFound     = errors.New("event not found")
-	ErrNotEventOwner     = errors.New("not the owner of this event")
-	ErrEventInPast       = errors.New("cannot modify past events")
-	ErrInvalidDate       = errors.New("invalid date format")
+	ErrEventNotFound = errors.New("event not found")
+	ErrNotEventOwner = errors.New("not the owner of this event")
+	ErrEventInPast   = errors.New("cannot modify past events")
+	ErrInvalidDate   = errors.New("invalid date format")
 )
 
 type EventService struct {
-	repos *repository.Repositories
+	repos  *repository.Repositories
+	upload *UploadService
 }
 
-func NewEventService(repos *repository.Repositories) *EventService {
-	return &EventService{repos: repos}
+func NewEventService(repos *repository.Repositories, upload *UploadService) *EventService {
+	return &EventService{repos: repos, upload: upload}
 }
 
 func (s *EventService) Create(ctx context.Context, creatorID uuid.UUID, req *models.EventCreateRequest) (*models.Event, error) {
@@ -182,7 +183,17 @@ func (s *EventService) Delete(ctx context.Context, id, creatorID uuid.UUID, isAd
 		return ErrNotEventOwner
 	}
 
-	return s.repos.Event.Delete(ctx, id)
+	if err := s.repos.Event.Delete(ctx, id); err != nil {
+		return err
+	}
+
+	if event.ImageURL != nil && s.upload != nil {
+		if err := s.upload.DeleteFile(*event.ImageURL); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *EventService) UpdateImageURL(ctx context.Context, id, creatorID uuid.UUID, imageURL string) error {
@@ -197,7 +208,20 @@ func (s *EventService) UpdateImageURL(ctx context.Context, id, creatorID uuid.UU
 		return ErrNotEventOwner
 	}
 
-	return s.repos.Event.UpdateImageURL(ctx, id, imageURL)
+	if err := s.repos.Event.UpdateImageURL(ctx, id, imageURL); err != nil {
+		if s.upload != nil {
+			_ = s.upload.DeleteFile(imageURL)
+		}
+		return err
+	}
+
+	if event.ImageURL != nil && *event.ImageURL != "" && *event.ImageURL != imageURL && s.upload != nil {
+		if err := s.upload.DeleteFile(*event.ImageURL); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *EventService) ListPublic(ctx context.Context, filter models.EventListFilter) (*models.EventListResponse, error) {

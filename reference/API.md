@@ -1,10 +1,20 @@
 # Zen Bali API Documentation
 
+> Current verified local state as of 2026-03-23:
+> - App: `http://localhost:8081`
+> - API: `http://localhost:8081/api`
+> - PostgreSQL host port: `5433`
+> - Admin: `admin@zenbali.org` / `Teameditor@123`
+> - Creator: `creator@zenbali.org` / `admin123`
+> - Event posting fee: `$5 USD` (`500` cents)
+> - Seed base state: 1 admin, 1 creator, 1 sample published event, 0 payments
+
+
 **Version:** 1.0.0
 **Last Updated:** 2026-01-10
 
 ## Base URL
-- **Development:** `http://localhost:8080/api`
+- **Development:** `http://localhost:8081/api`
 - **Production:** `https://zenbali.org/api`
 
 ## Authentication

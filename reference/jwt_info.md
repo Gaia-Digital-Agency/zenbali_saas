@@ -1,5 +1,15 @@
 # Zen Bali JWT Authentication Guide
 
+> Current verified local state as of 2026-03-23:
+> - App: `http://localhost:8081`
+> - API: `http://localhost:8081/api`
+> - PostgreSQL host port: `5433`
+> - Admin: `admin@zenbali.org` / `Teameditor@123`
+> - Creator: `creator@zenbali.org` / `admin123`
+> - Event posting fee: `$5 USD` (`500` cents)
+> - Seed base state: 1 admin, 1 creator, 1 sample published event, 0 payments
+
+
 ## Overview
 
 Zen Bali uses **JWT (JSON Web Tokens)** for stateless authentication. The application implements a custom JWT-based authentication system using the `github.com/golang-jwt/jwt/v5` library.
@@ -313,7 +323,7 @@ The system supports two user types:
 ```json
 {
   "email": "admin@zenbali.org",
-  "password": "admin123"
+  "password": "Teameditor@123"
 }
 ```
 
@@ -714,7 +724,7 @@ JWT_EXPIRY_HOURS=2
 
 **Creator Registration:**
 ```bash
-curl -X POST http://localhost:8080/api/creator/register \
+curl -X POST http://localhost:8081/api/creator/register \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test Creator",
@@ -725,7 +735,7 @@ curl -X POST http://localhost:8080/api/creator/register \
 
 **Creator Login:**
 ```bash
-curl -X POST http://localhost:8080/api/creator/login \
+curl -X POST http://localhost:8081/api/creator/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
@@ -738,7 +748,7 @@ curl -X POST http://localhost:8080/api/creator/login \
 # Save token from login response
 TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
-curl -X GET http://localhost:8080/api/creator/events \
+curl -X GET http://localhost:8081/api/creator/events \
   -H "Authorization: Bearer $TOKEN"
 ```
 

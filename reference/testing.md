@@ -1,11 +1,21 @@
 # Zen Bali - Testing Instructions
 
+> Current verified local state as of 2026-03-23:
+> - App: `http://localhost:8081`
+> - API: `http://localhost:8081/api`
+> - PostgreSQL host port: `5433`
+> - Admin: `admin@zenbali.org` / `Teameditor@123`
+> - Creator: `creator@zenbali.org` / `admin123`
+> - Event posting fee: `$5 USD` (`500` cents)
+> - Seed base state: 1 admin, 1 creator, 1 sample published event, 0 payments
+
+
 ## Prerequisites
 
 - Docker Desktop installed and running
 - Go 1.22+ installed
-- Port 5432 available (no local PostgreSQL running)
-- Port 8080 available
+- Port 5433 available (no local PostgreSQL running)
+- Port 8081 available
 
 ---
 
@@ -38,9 +48,9 @@ This will:
 ```
 
 This will:
-1. Stop the backend server (port 8080)
+1. Stop the backend server (port 8081)
 2. Stop Docker containers
-3. Stop any local PostgreSQL services on port 5432
+3. Stop any local PostgreSQL services on port 5433
 
 ---
 
@@ -50,9 +60,9 @@ This will:
 
 | Field | Value |
 |-------|-------|
-| URL | http://localhost:8080/admin/login.html |
+| URL | http://localhost:8081/admin/login.html |
 | Email | `admin@zenbali.org` |
-| Password | `admin123` |
+| Password | `Teameditor@123` |
 
 **Admin can:**
 - View dashboard statistics
@@ -64,8 +74,8 @@ This will:
 
 | Field | Value |
 |-------|-------|
-| URL | http://localhost:8080/creator/login.html |
-| Email | `creator@test.com` |
+| URL | http://localhost:8081/creator/login.html |
+| Email | `creator@zenbali.org` |
 | Password | `admin123` |
 
 **Creator can:**
@@ -79,13 +89,13 @@ This will:
 
 | Page | URL |
 |------|-----|
-| Landing Page | http://localhost:8080 |
-| Health Check | http://localhost:8080/api/health |
-| Creator Login | http://localhost:8080/creator/login.html |
-| Creator Register | http://localhost:8080/creator/register.html |
-| Creator Dashboard | http://localhost:8080/creator/dashboard.html |
-| Admin Login | http://localhost:8080/admin/login.html |
-| Admin Dashboard | http://localhost:8080/admin/dashboard.html |
+| Landing Page | http://localhost:8081 |
+| Health Check | http://localhost:8081/api/health |
+| Creator Login | http://localhost:8081/creator/login.html |
+| Creator Register | http://localhost:8081/creator/register.html |
+| Creator Dashboard | http://localhost:8081/creator/dashboard.html |
+| Admin Login | http://localhost:8081/admin/login.html |
+| Admin Dashboard | http://localhost:8081/admin/dashboard.html |
 
 ---
 
@@ -111,13 +121,13 @@ The database includes 2 sample paid and published events:
 
 ### 1. View Public Events
 
-1. Go to http://localhost:8080
+1. Go to http://localhost:8081
 2. Events from today and tomorrow should display
 3. Use filters to search by location, type, date
 
 ### 2. Creator Registration
 
-1. Go to http://localhost:8080/creator/register.html
+1. Go to http://localhost:8081/creator/register.html
 2. Fill in registration form
 3. Login with new credentials
 4. Access creator dashboard
@@ -175,10 +185,10 @@ If Docker volumes were removed, test accounts need to be recreated:
 docker exec -i zenbali-postgres psql -U zenbali -d zenbali -c "INSERT INTO admins (email, password_hash, name) VALUES ('admin@zenbali.org', '\$2a\$10\$oWNHRvZQ9IKrsmElaYcYjumtJgrCJx87XkhbdzNxalNCR.4RpSaJ6', 'Admin') ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash;"
 
 # Insert creator
-docker exec -i zenbali-postgres psql -U zenbali -d zenbali -c "INSERT INTO creators (name, organization_name, email, mobile, password_hash) VALUES ('Test Creator', 'Test Org', 'creator@test.com', '+628123456789', '\$2a\$10\$oWNHRvZQ9IKrsmElaYcYjumtJgrCJx87XkhbdzNxalNCR.4RpSaJ6') ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash;"
+docker exec -i zenbali-postgres psql -U zenbali -d zenbali -c "INSERT INTO creators (name, organization_name, email, mobile, password_hash) VALUES ('Test Creator', 'Test Org', 'creator@zenbali.org', '+628123456789', '\$2a\$10\$oWNHRvZQ9IKrsmElaYcYjumtJgrCJx87XkhbdzNxalNCR.4RpSaJ6') ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash;"
 ```
 
-### Port 5432 in use
+### Port 5433 in use
 
 ```bash
 # Stop local PostgreSQL
@@ -188,13 +198,13 @@ brew services stop postgresql@16
 brew services stop postgresql
 
 # Or kill process on port
-lsof -ti:5432 | xargs kill -9
+lsof -ti:5433 | xargs kill -9
 ```
 
-### Port 8080 in use
+### Port 8081 in use
 
 ```bash
-lsof -ti:8080 | xargs kill -9
+lsof -ti:8081 | xargs kill -9
 ```
 
 ### No events showing on landing page
@@ -215,24 +225,24 @@ docker exec -i zenbali-postgres psql -U zenbali -d zenbali -c "SELECT title, eve
 
 ### Health Check
 ```bash
-curl http://localhost:8080/api/health
+curl http://localhost:8081/api/health
 ```
 
 ### List Events
 ```bash
-curl "http://localhost:8080/api/events?date_from=2026-01-16&date_to=2026-01-17"
+curl "http://localhost:8081/api/events?date_from=2026-01-16&date_to=2026-01-17"
 ```
 
 ### Creator Login
 ```bash
-curl -X POST http://localhost:8080/api/creator/login \
+curl -X POST http://localhost:8081/api/creator/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"creator@test.com","password":"admin123"}'
+  -d '{"email":"creator@zenbali.org","password":"admin123"}'
 ```
 
 ### Admin Login
 ```bash
-curl -X POST http://localhost:8080/api/admin/login \
+curl -X POST http://localhost:8081/api/admin/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@zenbali.org","password":"admin123"}'
+  -d '{"email":"admin@zenbali.org","password":"Teameditor@123"}'
 ```

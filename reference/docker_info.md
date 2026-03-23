@@ -1,12 +1,22 @@
 # Zen Bali Docker Configuration Guide
 
+> Current verified local state as of 2026-03-23:
+> - App: `http://localhost:8081`
+> - API: `http://localhost:8081/api`
+> - PostgreSQL host port: `5433`
+> - Admin: `admin@zenbali.org` / `Teameditor@123`
+> - Creator: `creator@zenbali.org` / `admin123`
+> - Event posting fee: `$5 USD` (`500` cents)
+> - Seed base state: 1 admin, 1 creator, 1 sample published event, 0 payments
+
+
 ## Docker Status
 ✅ **Docker services are RUNNING**
 
 ### Active Containers
 | Container Name | Image | Status | Ports | Purpose |
 |---------------|-------|--------|-------|---------|
-| `zenbali-postgres` | postgres:15-alpine | Up 21 mins (healthy) | 0.0.0.0:5432->5432 | PostgreSQL Database |
+| `zenbali-postgres` | postgres:15-alpine | Up 21 mins (healthy) | 0.0.0.0:5433->5432 | PostgreSQL Database |
 | `zenbali-redis` | redis:7-alpine | Up 21 mins | 0.0.0.0:6379->6379 | Redis Cache |
 
 ## Docker Architecture
@@ -34,7 +44,7 @@ services:
   postgres:
     - Image: postgres:15-alpine
     - Container: zenbali-postgres
-    - Port: 5432 (exposed to host)
+    - Port: 5433 on host (mapped to container 5432)
     - Health check enabled
     - Data persisted in volume
 
@@ -181,7 +191,7 @@ docker volume rm app_zenbali_postgres_data
 ### Service Communication
 
 **From Host Machine:**
-- PostgreSQL: `localhost:5432`
+- PostgreSQL: `localhost:5433`
 - Redis: `localhost:6379`
 
 **Between Containers:**
@@ -189,7 +199,7 @@ docker volume rm app_zenbali_postgres_data
 - Redis: `redis:6379`
 
 **From Go Application (running on host):**
-- PostgreSQL: `localhost:5432` (configured in `.env`)
+- PostgreSQL: `localhost:5433` (configured in `.env`)
 - Redis: `localhost:6379`
 
 ## PostgreSQL Container Details
@@ -200,7 +210,7 @@ docker volume rm app_zenbali_postgres_data
 docker exec -it zenbali-postgres psql -U zenbali -d zenbali
 
 # Or using psql directly
-PGPASSWORD=zenbali_dev_password psql -h localhost -p 5432 -U zenbali -d zenbali
+PGPASSWORD=zenbali_dev_password psql -h localhost -p 5433 -U zenbali -d zenbali
 ```
 
 ### Environment Variables
@@ -304,7 +314,7 @@ When deploying, set these environment variables:
 ```bash
 # Database (use Cloud SQL or managed PostgreSQL)
 DB_HOST=your-cloud-sql-host
-DB_PORT=5432
+DB_PORT=5433
 DB_USER=zenbali
 DB_PASSWORD=your-secure-password
 DB_NAME=zenbali
@@ -483,7 +493,7 @@ The Dockerfile includes a health check that pings `/api/health`:
 
 ```bash
 # Test health endpoint (when app is running)
-curl http://localhost:8080/api/health
+curl http://localhost:8081/api/health
 ```
 
 ## Security Considerations

@@ -56,11 +56,16 @@ func main() {
 	}
 
 	// Initialize services
+	uploadService, err := services.NewUploadService(context.Background(), cfg.Upload)
+	if err != nil {
+		log.Fatalf("Failed to initialize upload service: %v", err)
+	}
+
 	svcs := &services.Services{
 		Auth:    services.NewAuthService(repos, cfg.JWT),
-		Event:   services.NewEventService(repos),
+		Event:   services.NewEventService(repos, uploadService),
 		Payment: services.NewPaymentService(repos, cfg.Stripe),
-		Upload:  services.NewUploadService(cfg.Upload),
+		Upload:  uploadService,
 		Visitor: services.NewVisitorService(repos),
 	}
 
@@ -164,9 +169,11 @@ func main() {
 		r.Post("/webhooks/stripe", h.Webhook.HandleStripe)
 	})
 
-	// Serve uploaded files
-	fileServer := http.FileServer(http.Dir(cfg.Upload.Dir))
-	r.Handle("/uploads/*", http.StripPrefix("/uploads/", fileServer))
+	// Serve uploaded files when local storage is enabled.
+	if cfg.Upload.Backend != "gcs" {
+		fileServer := http.FileServer(http.Dir(cfg.Upload.Dir))
+		r.Handle("/uploads/*", http.StripPrefix("/uploads/", fileServer))
+	}
 
 	// Serve static frontend files
 	r.Handle("/*", http.FileServer(http.Dir("../frontend/public")))

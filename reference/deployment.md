@@ -1,5 +1,15 @@
 # Zen Bali - Deployment Guide
 
+> Current verified local state as of 2026-03-23:
+> - App: `http://localhost:8081`
+> - API: `http://localhost:8081/api`
+> - PostgreSQL host port: `5433`
+> - Admin: `admin@zenbali.org` / `Teameditor@123`
+> - Creator: `creator@zenbali.org` / `admin123`
+> - Event posting fee: `$5 USD` (`500` cents)
+> - Seed base state: 1 admin, 1 creator, 1 sample published event, 0 payments
+
+
 **Last Updated:** 2026-01-13
 
 This guide covers deploying the Zen Bali application to Google Cloud Platform (GCP) using Cloud Run, Cloud SQL, and Cloud Storage.
@@ -54,13 +64,13 @@ This guide covers deploying the Zen Bali application to Google Cloud Platform (G
 
 ```bash
 # Clone repository
-git clone https://github.com/net1io/zenbali.git
-cd zenbali
+git clone git@github.com:Gaia-Digital-Agency/zenbali_saas.git
+cd zenbali_saas
 
 # Start application
 ./start.sh
 
-# Access at http://localhost:8080
+# Access at http://localhost:8081
 ```
 
 ### Manual Start
@@ -81,7 +91,7 @@ go run ./cmd/server
 
 ### Default Admin Credentials
 - Email: `admin@zenbali.org`
-- Password: `admin123`
+- Password: `Teameditor@123`
 
 ### Stop Services
 
@@ -123,16 +133,16 @@ gcloud sql users create zenbali \
 
 ```bash
 # Create bucket for event images
-gsutil mb -c STANDARD -l asia-southeast1 gs://zenbali-event-images
+gsutil mb -c STANDARD -l asia-southeast1 gs://gda-s01-bucket
 
 # Make bucket publicly readable
-gsutil iam ch allUsers:objectViewer gs://zenbali-event-images
+gsutil iam ch allUsers:objectViewer gs://gda-s01-bucket
 
 # Enable CORS
 cat > cors.json <<EOF
 [
   {
-    "origin": ["https://zenbali.org", "http://localhost:8080"],
+    "origin": ["https://zenbali.org", "http://localhost:8081"],
     "method": ["GET", "POST", "DELETE"],
     "responseHeader": ["Content-Type"],
     "maxAgeSeconds": 3600
@@ -140,7 +150,7 @@ cat > cors.json <<EOF
 ]
 EOF
 
-gsutil cors set cors.json gs://zenbali-event-images
+gsutil cors set cors.json gs://gda-s01-bucket
 ```
 
 ### Step 3: Set Up Secret Manager
@@ -245,10 +255,10 @@ gcloud run domain-mappings describe \
 ```env
 PORT=8080
 ENV=development
-BASE_URL=http://localhost:8080
+BASE_URL=http://localhost:8081
 
 DB_HOST=localhost
-DB_PORT=5432
+DB_PORT=5433
 DB_USER=zenbali
 DB_PASSWORD=zenbali_dev_password
 DB_NAME=zenbali
@@ -262,11 +272,15 @@ STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_CENTS=500
 
+UPLOAD_BACKEND=local
 UPLOAD_DIR=./uploads
 MAX_UPLOAD_SIZE_MB=5
+GCS_BUCKET=
+GCS_PREFIX=
+GCS_PUBLIC_BASE_URL=
 
 ADMIN_EMAIL=admin@zenbali.org
-ADMIN_PASSWORD=admin123
+ADMIN_PASSWORD=Teameditor@123
 ```
 
 ### Production (Cloud Run)
@@ -285,8 +299,12 @@ DB_SSL_MODE=disable
 DB_MAX_CONNECTIONS=25
 JWT_EXPIRY_HOURS=168
 STRIPE_PRICE_CENTS=500
-UPLOAD_DIR=gs://zenbali-event-images
+UPLOAD_BACKEND=gcs
+UPLOAD_DIR=./uploads
 MAX_UPLOAD_SIZE_MB=5
+GCS_BUCKET=gda-s01-bucket
+GCS_PREFIX=zenbali
+GCS_PUBLIC_BASE_URL=https://storage.googleapis.com/gda-s01-bucket
 ADMIN_EMAIL=admin@zenbali.org
 
 # Secrets (from Secret Manager)
@@ -296,6 +314,7 @@ STRIPE_SECRET_KEY=<secret>
 STRIPE_PUBLISHABLE_KEY=<secret>
 STRIPE_WEBHOOK_SECRET=<secret>
 ADMIN_PASSWORD=<secret>
+GOOGLE_APPLICATION_CREDENTIALS=<optional if not using attached service account>
 ```
 
 ---
@@ -443,13 +462,13 @@ gcloud run services describe zenbali-backend --region asia-southeast1 --format="
 **Solution:**
 ```bash
 # Verify bucket exists and is accessible
-gsutil ls gs://zenbali-event-images
+gsutil ls gs://gda-s01-bucket/zenbali/
 
 # Check bucket permissions
-gsutil iam get gs://zenbali-event-images
+gsutil iam get gs://gda-s01-bucket
 
 # Verify CORS configuration
-gsutil cors get gs://zenbali-event-images
+gsutil cors get gs://gda-s01-bucket
 ```
 
 ---

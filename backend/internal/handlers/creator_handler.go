@@ -388,7 +388,7 @@ func (h *CreatorHandler) CreatePaymentSession(w http.ResponseWriter, r *http.Req
 
 	// Build success and cancel URLs
 	baseURL := h.config.BaseURL
-	successURL := baseURL + "/creator/payment-success.html?event_id=" + id.String()
+	successURL := baseURL + "/creator/payment-success.html?event_id=" + id.String() + "&session_id={CHECKOUT_SESSION_ID}"
 	cancelURL := baseURL + "/creator/payment-cancel.html?event_id=" + id.String()
 
 	session, err := h.services.Payment.CreateCheckoutSession(r.Context(), event, successURL, cancelURL)
@@ -402,6 +402,67 @@ func (h *CreatorHandler) CreatePaymentSession(w http.ResponseWriter, r *http.Req
 	}
 
 	utils.Success(w, session)
+}
+
+func (h *CreatorHandler) VerifyPaymentSession(w http.ResponseWriter, r *http.Request) {
+	creator := GetCreatorFromContext(r.Context())
+	if creator == nil {
+		utils.Unauthorized(w, "")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		utils.BadRequest(w, "Invalid event ID")
+		return
+	}
+
+	event, err := h.services.Event.GetByID(r.Context(), id)
+	if err != nil {
+		if err == services.ErrEventNotFound {
+			utils.NotFound(w, "Event not found")
+			return
+		}
+		utils.InternalError(w, "Failed to fetch event")
+		return
+	}
+
+	if event.CreatorID != creator.ID {
+		utils.Forbidden(w, "Not authorized")
+		return
+	}
+
+	sessionID := r.URL.Query().Get("session_id")
+	verified, err := h.services.Payment.VerifyCheckoutSession(r.Context(), event, sessionID)
+	if err != nil {
+		log.Printf("ERROR verifying payment for event %s session %s: %v", id, sessionID, err)
+		switch err {
+		case services.ErrSessionMismatch:
+			utils.Forbidden(w, "Checkout session does not belong to this event")
+		default:
+			utils.InternalError(w, "Failed to verify payment")
+		}
+		return
+	}
+
+	event, err = h.services.Event.GetByID(r.Context(), id)
+	if err != nil {
+		utils.InternalError(w, "Failed to refresh event")
+		return
+	}
+
+	status := "pending"
+	if verified || (event.IsPaid && event.IsPublished) {
+		status = "published"
+	}
+
+	utils.Success(w, map[string]interface{}{
+		"status":       status,
+		"is_paid":      event.IsPaid,
+		"is_published": event.IsPublished,
+		"event":        event.ToResponse(),
+	})
 }
 
 func (h *CreatorHandler) ListPayments(w http.ResponseWriter, r *http.Request) {

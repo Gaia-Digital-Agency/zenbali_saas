@@ -106,9 +106,72 @@ func (r *CreatorRepository) Update(ctx context.Context, creator *models.Creator)
 	return err
 }
 
+func (r *CreatorRepository) UpdateAdmin(ctx context.Context, creator *models.Creator) error {
+	query := `
+		UPDATE creators
+		SET name = $1,
+		    organization_name = $2,
+		    email = $3,
+		    mobile = $4,
+		    is_verified = $5,
+		    is_active = $6,
+		    updated_at = NOW()
+		WHERE id = $7
+	`
+	_, err := r.pool.Exec(ctx, query,
+		creator.Name,
+		creator.OrganizationName,
+		creator.Email,
+		creator.Mobile,
+		creator.IsVerified,
+		creator.IsActive,
+		creator.ID,
+	)
+	return err
+}
+
+func (r *CreatorRepository) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
+	query := `UPDATE creators SET password_hash = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.pool.Exec(ctx, query, passwordHash, id)
+	return err
+}
+
+func (r *CreatorRepository) EnsureDefaultCreator(ctx context.Context, creator *models.Creator) error {
+	query := `
+		INSERT INTO creators (id, name, organization_name, email, mobile, password_hash, is_verified, is_active)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		ON CONFLICT (id) DO UPDATE SET
+			name = EXCLUDED.name,
+			organization_name = EXCLUDED.organization_name,
+			email = EXCLUDED.email,
+			mobile = EXCLUDED.mobile,
+			password_hash = EXCLUDED.password_hash,
+			is_verified = EXCLUDED.is_verified,
+			is_active = EXCLUDED.is_active,
+			updated_at = NOW()
+	`
+	_, err := r.pool.Exec(ctx, query,
+		creator.ID,
+		creator.Name,
+		creator.OrganizationName,
+		creator.Email,
+		creator.Mobile,
+		creator.PasswordHash,
+		creator.IsVerified,
+		creator.IsActive,
+	)
+	return err
+}
+
 func (r *CreatorRepository) UpdateStatus(ctx context.Context, id uuid.UUID, isActive bool) error {
 	query := `UPDATE creators SET is_active = $1, updated_at = NOW() WHERE id = $2`
 	_, err := r.pool.Exec(ctx, query, isActive, id)
+	return err
+}
+
+func (r *CreatorRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	query := `DELETE FROM creators WHERE id = $1`
+	_, err := r.pool.Exec(ctx, query, id)
 	return err
 }
 

@@ -169,18 +169,19 @@
                         </div>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <div class="form-group">
-                            <label class="form-label">Entrance Type <span class="required">*</span></label>
-                            <select name="entrance_type_id" class="form-control" required>
-                                ${entranceTypes.map(t => `<option value="${t.id}" ${t.id === eventData.entrance_type_id ? 'selected' : ''}>${t.name}</option>`).join('')}
-                            </select>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Entrance Type <span class="required">*</span></label>
+                                <select name="entrance_type_id" class="form-control" required>
+                                    ${entranceTypes.map(t => `<option value="${t.id}" ${t.id === eventData.entrance_type_id ? 'selected' : ''}>${t.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Entrance Fee (Rupiah)</label>
+                                <input type="number" name="entrance_fee" class="form-control" min="0" step="5000" inputmode="numeric" placeholder="50000" value="${eventData.entrance_fee || 0}">
+                                <span class="form-hint">Use Rp 5,000 increments. Example: 50000, 75000, 100000.</span>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Entrance Fee (USD)</label>
-                            <input type="number" name="entrance_fee" class="form-control" min="0" step="0.01" value="${eventData.entrance_fee || 0}">
-                        </div>
-                    </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div class="form-group">
@@ -229,7 +230,7 @@
             } else {
                 container.innerHTML = `
                     <div class="text-center">
-                        <p class="mb-2"><strong style="font-size: 1.5rem; color: var(--primary);">$10 USD</strong></p>
+                        <p class="mb-2"><strong style="font-size: 1.5rem; color: var(--primary);">$5 USD</strong></p>
                         <p class="text-muted mb-3">One-time fee to publish</p>
                         <button onclick="payForEvent()" class="btn btn-primary btn-block">Pay & Publish</button>
                     </div>

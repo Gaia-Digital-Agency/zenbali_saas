@@ -123,6 +123,54 @@ func (h *AdminHandler) ListEvents(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *AdminHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		models.EventCreateRequest
+		CreatorID   string  `json:"creator_id"`
+		ImageURL    string  `json:"image_url"`
+		IsPaid      *bool   `json:"is_paid"`
+		IsPublished *bool   `json:"is_published"`
+	}
+	if err := utils.ParseJSON(r, &req); err != nil {
+		utils.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	creatorID, err := uuid.Parse(req.CreatorID)
+	if err != nil {
+		utils.BadRequest(w, "Invalid creator ID")
+		return
+	}
+
+	event, err := h.services.Event.Create(r.Context(), creatorID, &req.EventCreateRequest)
+	if err != nil {
+		if err == services.ErrInvalidDate {
+			utils.BadRequest(w, "Invalid date format. Use YYYY-MM-DD")
+			return
+		}
+		utils.InternalError(w, "Failed to create event")
+		return
+	}
+
+	if req.ImageURL != "" || req.IsPaid != nil || req.IsPublished != nil {
+		var imageURL *string
+		if req.ImageURL != "" {
+			imageURL = &req.ImageURL
+		}
+		if err := h.repos.Event.UpdateAdminFields(r.Context(), event.ID, imageURL, req.IsPaid, req.IsPublished); err != nil {
+			utils.InternalError(w, "Failed to update event admin fields")
+			return
+		}
+		event, err = h.services.Event.GetByID(r.Context(), event.ID)
+		if err != nil {
+			utils.InternalError(w, "Failed to fetch created event")
+			return
+		}
+	}
+
+	utils.Created(w, event.ToResponse())
+}
+
 func (h *AdminHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -131,13 +179,19 @@ func (h *AdminHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.EventUpdateRequest
+	var req struct {
+		models.EventUpdateRequest
+		CreatorID   string `json:"creator_id"`
+		ImageURL    string `json:"image_url"`
+		IsPaid      *bool  `json:"is_paid"`
+		IsPublished *bool  `json:"is_published"`
+	}
 	if err := utils.ParseJSON(r, &req); err != nil {
 		utils.BadRequest(w, "Invalid request body")
 		return
 	}
 
-	event, err := h.services.Event.Update(r.Context(), id, uuid.Nil, &req, true)
+	event, err := h.services.Event.Update(r.Context(), id, uuid.Nil, &req.EventUpdateRequest, true)
 	if err != nil {
 		if err == services.ErrEventNotFound {
 			utils.NotFound(w, "Event not found")
@@ -145,6 +199,39 @@ func (h *AdminHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		}
 		utils.InternalError(w, "Failed to update event")
 		return
+	}
+
+	if req.ImageURL != "" || req.IsPaid != nil || req.IsPublished != nil {
+		var imageURL *string
+		if req.ImageURL != "" {
+			imageURL = &req.ImageURL
+		}
+		if err := h.repos.Event.UpdateAdminFields(r.Context(), id, imageURL, req.IsPaid, req.IsPublished); err != nil {
+			utils.InternalError(w, "Failed to update event admin fields")
+			return
+		}
+		event, err = h.services.Event.GetByID(r.Context(), id)
+		if err != nil {
+			utils.InternalError(w, "Failed to fetch updated event")
+			return
+		}
+	}
+
+	if req.CreatorID != "" {
+		creatorID, err := uuid.Parse(req.CreatorID)
+		if err != nil {
+			utils.BadRequest(w, "Invalid creator ID")
+			return
+		}
+		if err := h.repos.Event.UpdateCreator(r.Context(), id, creatorID); err != nil {
+			utils.InternalError(w, "Failed to update event creator")
+			return
+		}
+		event, err = h.services.Event.GetByID(r.Context(), id)
+		if err != nil {
+			utils.InternalError(w, "Failed to fetch updated event")
+			return
+		}
 	}
 
 	utils.Success(w, event.ToResponse())
@@ -206,6 +293,73 @@ func (h *AdminHandler) ListCreators(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (h *AdminHandler) CreateCreator(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Name             string `json:"name"`
+		OrganizationName string `json:"organization_name"`
+		Email            string `json:"email"`
+		Mobile           string `json:"mobile"`
+		Password         string `json:"password"`
+		IsVerified       bool   `json:"is_verified"`
+		IsActive         bool   `json:"is_active"`
+	}
+	if err := utils.ParseJSON(r, &req); err != nil {
+		utils.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	if req.Name == "" || req.Email == "" || req.Password == "" {
+		utils.BadRequest(w, "Name, email, and password are required")
+		return
+	}
+	if len(req.Password) < 8 {
+		utils.BadRequest(w, "Password must be at least 8 characters")
+		return
+	}
+
+	existing, err := h.repos.Creator.GetByEmail(r.Context(), req.Email)
+	if err != nil {
+		utils.InternalError(w, "Failed to check creator email")
+		return
+	}
+	if existing != nil {
+		utils.BadRequest(w, "Email already registered")
+		return
+	}
+
+	hash, err := h.services.Auth.HashPassword(req.Password)
+	if err != nil {
+		utils.InternalError(w, "Failed to hash password")
+		return
+	}
+
+	creator := &models.Creator{
+		Name:             req.Name,
+		OrganizationName: req.OrganizationName,
+		Email:            req.Email,
+		Mobile:           req.Mobile,
+		PasswordHash:     hash,
+		IsVerified:       req.IsVerified,
+		IsActive:         req.IsActive,
+	}
+	if err := h.repos.Creator.Create(r.Context(), creator); err != nil {
+		utils.InternalError(w, "Failed to create creator")
+		return
+	}
+	if err := h.repos.Creator.UpdateAdmin(r.Context(), creator); err != nil {
+		utils.InternalError(w, "Failed to finalize creator")
+		return
+	}
+
+	creator, err = h.repos.Creator.GetByID(r.Context(), creator.ID)
+	if err != nil || creator == nil {
+		utils.InternalError(w, "Failed to fetch creator")
+		return
+	}
+
+	utils.Created(w, creator.ToResponse())
+}
+
 func (h *AdminHandler) UpdateCreator(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := uuid.Parse(idStr)
@@ -215,18 +369,17 @@ func (h *AdminHandler) UpdateCreator(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		IsActive *bool `json:"is_active"`
+		Name             string `json:"name"`
+		OrganizationName string `json:"organization_name"`
+		Email            string `json:"email"`
+		Mobile           string `json:"mobile"`
+		Password         string `json:"password"`
+		IsActive         *bool  `json:"is_active"`
+		IsVerified       *bool  `json:"is_verified"`
 	}
 	if err := utils.ParseJSON(r, &req); err != nil {
 		utils.BadRequest(w, "Invalid request body")
 		return
-	}
-
-	if req.IsActive != nil {
-		if err := h.repos.Creator.UpdateStatus(r.Context(), id, *req.IsActive); err != nil {
-			utils.InternalError(w, "Failed to update creator")
-			return
-		}
 	}
 
 	creator, err := h.repos.Creator.GetByID(r.Context(), id)
@@ -235,7 +388,82 @@ func (h *AdminHandler) UpdateCreator(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Name != "" {
+		creator.Name = req.Name
+	}
+	if req.OrganizationName != "" {
+		creator.OrganizationName = req.OrganizationName
+	}
+	if req.Email != "" && req.Email != creator.Email {
+		existing, err := h.repos.Creator.GetByEmail(r.Context(), req.Email)
+		if err != nil {
+			utils.InternalError(w, "Failed to check creator email")
+			return
+		}
+		if existing != nil && existing.ID != creator.ID {
+			utils.BadRequest(w, "Email already registered")
+			return
+		}
+		creator.Email = req.Email
+	}
+	if req.Mobile != "" {
+		creator.Mobile = req.Mobile
+	}
+	if req.IsActive != nil {
+		creator.IsActive = *req.IsActive
+	}
+	if req.IsVerified != nil {
+		creator.IsVerified = *req.IsVerified
+	}
+	if err := h.repos.Creator.UpdateAdmin(r.Context(), creator); err != nil {
+		utils.InternalError(w, "Failed to update creator")
+		return
+	}
+	if req.Password != "" {
+		hash, err := h.services.Auth.HashPassword(req.Password)
+		if err != nil {
+			utils.InternalError(w, "Failed to hash password")
+			return
+		}
+		if err := h.repos.Creator.UpdatePassword(r.Context(), id, hash); err != nil {
+			utils.InternalError(w, "Failed to update creator password")
+			return
+		}
+	}
+
+	creator, err = h.repos.Creator.GetByID(r.Context(), id)
+	if err != nil || creator == nil {
+		utils.NotFound(w, "Creator not found")
+		return
+	}
+
 	utils.Success(w, creator.ToResponse())
+}
+
+func (h *AdminHandler) DeleteCreator(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		utils.BadRequest(w, "Invalid creator ID")
+		return
+	}
+
+	creator, err := h.repos.Creator.GetByID(r.Context(), id)
+	if err != nil {
+		utils.InternalError(w, "Failed to fetch creator")
+		return
+	}
+	if creator == nil {
+		utils.NotFound(w, "Creator not found")
+		return
+	}
+
+	if err := h.repos.Creator.Delete(r.Context(), id); err != nil {
+		utils.InternalError(w, "Failed to delete creator")
+		return
+	}
+
+	utils.Message(w, "Creator deleted successfully")
 }
 
 func (h *AdminHandler) ListPayments(w http.ResponseWriter, r *http.Request) {

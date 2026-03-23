@@ -175,3 +175,21 @@ func (s *AuthService) EnsureDefaultAdmin(ctx context.Context, email, password st
 	}
 	return s.repos.Admin.EnsureDefaultAdmin(ctx, email, hash)
 }
+
+func (s *AuthService) EnsureDefaultCreator(ctx context.Context, email, password string) error {
+	hash, err := s.HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	return s.repos.Creator.EnsureDefaultCreator(ctx, &models.Creator{
+		ID:               uuid.MustParse("98d34804-bf30-49b1-b578-af23b6b7c124"),
+		Name:             "Test Creator",
+		OrganizationName: "Test Organization",
+		Email:            email,
+		Mobile:           "+628123456789",
+		PasswordHash:     hash,
+		IsVerified:       true,
+		IsActive:         true,
+	})
+}

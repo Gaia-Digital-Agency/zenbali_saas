@@ -322,4 +322,17 @@ async function loadVisitorStats() {
 // Initialize modals when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     Modal.init();
+    document.querySelectorAll('[data-password-toggle]').forEach(button => {
+        const targetName = button.getAttribute('data-password-toggle');
+        const form = button.closest('form');
+        const input = form ? form.querySelector(`input[name="${targetName}"]`) : null;
+        if (!input) return;
+
+        button.addEventListener('click', () => {
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            button.textContent = isPassword ? 'Hide' : 'Show';
+            button.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+        });
+    });
 });

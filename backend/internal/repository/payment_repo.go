@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
@@ -14,6 +15,13 @@ import (
 
 type PaymentRepository struct {
 	pool *pgxpool.Pool
+}
+
+func scanNullableString(src sql.NullString) string {
+	if src.Valid {
+		return src.String
+	}
+	return ""
 }
 
 func NewPaymentRepository(pool *pgxpool.Pool) *PaymentRepository {
@@ -38,6 +46,7 @@ func (r *PaymentRepository) Create(ctx context.Context, payment *models.Payment)
 
 func (r *PaymentRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Payment, error) {
 	payment := &models.Payment{}
+	var paymentIntent sql.NullString
 	query := `
 		SELECT p.id, p.event_id, p.creator_id, p.stripe_session_id, p.stripe_payment_intent_id,
 		       p.amount_cents, p.currency, p.status, p.created_at, p.updated_at,
@@ -49,7 +58,7 @@ func (r *PaymentRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.
 	`
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&payment.ID, &payment.EventID, &payment.CreatorID, &payment.StripeSessionID,
-		&payment.StripePaymentIntentID, &payment.AmountCents, &payment.Currency,
+		&paymentIntent, &payment.AmountCents, &payment.Currency,
 		&payment.Status, &payment.CreatedAt, &payment.UpdatedAt,
 		&payment.EventTitle, &payment.CreatorName,
 	)
@@ -59,11 +68,13 @@ func (r *PaymentRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.
 	if err != nil {
 		return nil, err
 	}
+	payment.StripePaymentIntentID = scanNullableString(paymentIntent)
 	return payment, nil
 }
 
 func (r *PaymentRepository) GetByStripeSessionID(ctx context.Context, sessionID string) (*models.Payment, error) {
 	payment := &models.Payment{}
+	var paymentIntent sql.NullString
 	query := `
 		SELECT p.id, p.event_id, p.creator_id, p.stripe_session_id, p.stripe_payment_intent_id,
 		       p.amount_cents, p.currency, p.status, p.created_at, p.updated_at
@@ -72,7 +83,7 @@ func (r *PaymentRepository) GetByStripeSessionID(ctx context.Context, sessionID 
 	`
 	err := r.pool.QueryRow(ctx, query, sessionID).Scan(
 		&payment.ID, &payment.EventID, &payment.CreatorID, &payment.StripeSessionID,
-		&payment.StripePaymentIntentID, &payment.AmountCents, &payment.Currency,
+		&paymentIntent, &payment.AmountCents, &payment.Currency,
 		&payment.Status, &payment.CreatedAt, &payment.UpdatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -81,6 +92,7 @@ func (r *PaymentRepository) GetByStripeSessionID(ctx context.Context, sessionID 
 	if err != nil {
 		return nil, err
 	}
+	payment.StripePaymentIntentID = scanNullableString(paymentIntent)
 	return payment, nil
 }
 
@@ -124,13 +136,15 @@ func (r *PaymentRepository) ListByCreator(ctx context.Context, creatorID uuid.UU
 	var payments []*models.Payment
 	for rows.Next() {
 		payment := &models.Payment{}
+		var paymentIntent sql.NullString
 		if err := rows.Scan(
 			&payment.ID, &payment.EventID, &payment.CreatorID, &payment.StripeSessionID,
-			&payment.StripePaymentIntentID, &payment.AmountCents, &payment.Currency,
+			&paymentIntent, &payment.AmountCents, &payment.Currency,
 			&payment.Status, &payment.CreatedAt, &payment.UpdatedAt, &payment.EventTitle,
 		); err != nil {
 			return nil, 0, err
 		}
+		payment.StripePaymentIntentID = scanNullableString(paymentIntent)
 		payments = append(payments, payment)
 	}
 	return payments, total, nil
@@ -184,14 +198,16 @@ func (r *PaymentRepository) ListAll(ctx context.Context, page, limit int, status
 	var payments []*models.Payment
 	for rows.Next() {
 		payment := &models.Payment{}
+		var paymentIntent sql.NullString
 		if err := rows.Scan(
 			&payment.ID, &payment.EventID, &payment.CreatorID, &payment.StripeSessionID,
-			&payment.StripePaymentIntentID, &payment.AmountCents, &payment.Currency,
+			&paymentIntent, &payment.AmountCents, &payment.Currency,
 			&payment.Status, &payment.CreatedAt, &payment.UpdatedAt,
 			&payment.EventTitle, &payment.CreatorName,
 		); err != nil {
 			return nil, 0, err
 		}
+		payment.StripePaymentIntentID = scanNullableString(paymentIntent)
 		payments = append(payments, payment)
 	}
 	return payments, total, nil
@@ -231,14 +247,16 @@ func (r *PaymentRepository) GetRecent(ctx context.Context, limit int) ([]*models
 	var payments []*models.Payment
 	for rows.Next() {
 		payment := &models.Payment{}
+		var paymentIntent sql.NullString
 		if err := rows.Scan(
 			&payment.ID, &payment.EventID, &payment.CreatorID, &payment.StripeSessionID,
-			&payment.StripePaymentIntentID, &payment.AmountCents, &payment.Currency,
+			&paymentIntent, &payment.AmountCents, &payment.Currency,
 			&payment.Status, &payment.CreatedAt, &payment.UpdatedAt,
 			&payment.EventTitle, &payment.CreatorName,
 		); err != nil {
 			return nil, err
 		}
+		payment.StripePaymentIntentID = scanNullableString(paymentIntent)
 		payments = append(payments, payment)
 	}
 	return payments, nil

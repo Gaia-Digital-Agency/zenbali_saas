@@ -115,6 +115,25 @@ func (r *EventRepository) UpdatePaymentStatus(ctx context.Context, id uuid.UUID,
 	return err
 }
 
+func (r *EventRepository) UpdateAdminFields(ctx context.Context, id uuid.UUID, imageURL *string, isPaid, isPublished *bool) error {
+	query := `
+		UPDATE events
+		SET image_url = COALESCE($1, image_url),
+		    is_paid = COALESCE($2, is_paid),
+		    is_published = COALESCE($3, is_published),
+		    updated_at = NOW()
+		WHERE id = $4
+	`
+	_, err := r.pool.Exec(ctx, query, imageURL, isPaid, isPublished, id)
+	return err
+}
+
+func (r *EventRepository) UpdateCreator(ctx context.Context, id, creatorID uuid.UUID) error {
+	query := `UPDATE events SET creator_id = $1, updated_at = NOW() WHERE id = $2`
+	_, err := r.pool.Exec(ctx, query, creatorID, id)
+	return err
+}
+
 func (r *EventRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	query := `DELETE FROM events WHERE id = $1`
 	_, err := r.pool.Exec(ctx, query, id)

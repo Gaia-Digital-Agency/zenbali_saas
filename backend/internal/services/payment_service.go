@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/net1io/zenbali/internal/config"
@@ -15,6 +17,7 @@ import (
 var (
 	ErrPaymentNotFound = errors.New("payment not found")
 	ErrAlreadyPaid     = errors.New("event already paid")
+	ErrSessionMismatch = errors.New("checkout session does not match event")
 )
 
 type PaymentService struct {
@@ -83,6 +86,34 @@ func (s *PaymentService) CreateCheckoutSession(ctx context.Context, event *model
 		SessionID:  sess.ID,
 		SessionURL: sess.URL,
 	}, nil
+}
+
+func (s *PaymentService) VerifyCheckoutSession(ctx context.Context, event *models.Event, sessionID string) (bool, error) {
+	if event.IsPaid && event.IsPublished {
+		return true, nil
+	}
+
+	if sessionID == "" {
+		return false, nil
+	}
+
+	sess, err := session.Get(sessionID, nil)
+	if err != nil {
+		return false, fmt.Errorf("get checkout session: %w", err)
+	}
+
+	if sess.Metadata["event_id"] != event.ID.String() || sess.Metadata["creator_id"] != event.CreatorID.String() {
+		return false, ErrSessionMismatch
+	}
+
+	if strings.EqualFold(string(sess.PaymentStatus), "paid") || strings.EqualFold(string(sess.Status), "complete") {
+		if err := s.HandleSuccessfulPayment(ctx, sessionID); err != nil {
+			return false, fmt.Errorf("handle successful payment: %w", err)
+		}
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (s *PaymentService) HandleSuccessfulPayment(ctx context.Context, sessionID string) error {

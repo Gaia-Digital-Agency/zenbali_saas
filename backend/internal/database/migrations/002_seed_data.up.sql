@@ -80,11 +80,11 @@ INSERT INTO entrance_types (name, slug) VALUES
 ON CONFLICT (slug) DO NOTHING;
 
 -- ===========================================
--- Admin User (password: admin123)
+-- Admin User (password: Teameditor@123)
 -- ===========================================
 
 INSERT INTO admins (email, password_hash, name, is_active) VALUES
-    ('admin@zenbali.org', '$2a$10$7E1R11SN79ghwafaxYckH./LZWgy4TagcjIgMJE94ByW5WACFTCD.', 'Admin', true)
+    ('admin@zenbali.org', '$2y$10$7ANIKiUEOuV3Su0j6leAAODblimGW6vsP0KfiMGQYOr0OK1Omr6pu', 'Admin', true)
 ON CONFLICT (email) DO NOTHING;
 
 -- ===========================================
@@ -92,14 +92,14 @@ ON CONFLICT (email) DO NOTHING;
 -- ===========================================
 
 INSERT INTO creators (id, name, organization_name, email, mobile, password_hash, is_verified, is_active) VALUES
-    ('98d34804-bf30-49b1-b578-af23b6b7c124', 'Test Creator', 'Test Organization', 'creator@test.com', '+628123456789', '$2a$10$7E1R11SN79ghwafaxYckH./LZWgy4TagcjIgMJE94ByW5WACFTCD.', true, true)
+    ('98d34804-bf30-49b1-b578-af23b6b7c124', 'Test Creator', 'Test Organization', 'creator@zenbali.org', '+628123456789', '$2a$10$7E1R11SN79ghwafaxYckH./LZWgy4TagcjIgMJE94ByW5WACFTCD.', true, true)
 ON CONFLICT (email) DO NOTHING;
 
 -- ===========================================
 -- Sample Paid & Published Event
 -- ===========================================
 
-INSERT INTO events (creator_id, title, event_date, event_time, location_id, event_type_id, duration, entrance_type_id, entrance_fee, contact_email, contact_mobile, notes, is_paid, is_published)
+INSERT INTO events (creator_id, title, event_date, event_time, location_id, event_type_id, duration, entrance_type_id, entrance_fee, contact_email, contact_mobile, notes, image_url, is_paid, is_published)
 SELECT
     '98d34804-bf30-49b1-b578-af23b6b7c124'::uuid,
     'Sample Yoga Session in Ubud',
@@ -110,9 +110,10 @@ SELECT
     '2 hours',
     (SELECT id FROM entrance_types WHERE slug = 'prepaid-online'),
     150000,
-    'creator@test.com',
+    'creator@zenbali.org',
     '+628123456789',
     'This is a sample yoga session for testing purposes.',
+    '/uploads/af0b57c0-2cfb-4285-9edc-97e3da7c5c5a.png',
     true,
     true
 WHERE NOT EXISTS (SELECT 1 FROM events WHERE title = 'Sample Yoga Session in Ubud');

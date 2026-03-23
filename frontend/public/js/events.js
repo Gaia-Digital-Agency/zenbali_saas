@@ -10,6 +10,36 @@ let locations = [];
 let eventTypes = [];
 let entranceTypes = [];
 
+function formatLocalDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getCurrentDateRange(currentValue) {
+    const target = new Date();
+
+    if (currentValue === 'yesterday') {
+        target.setDate(target.getDate() - 1);
+    } else if (currentValue === 'tomorrow') {
+        target.setDate(target.getDate() + 1);
+    }
+
+    const formatted = formatLocalDate(target);
+    return { dateFrom: formatted, dateTo: formatted };
+}
+
+function syncDateInputsFromCurrent(currentValue) {
+    const current = currentValue || 'today';
+    const { dateFrom, dateTo } = getCurrentDateRange(current);
+    const dateFromInput = document.getElementById('filterDateFrom');
+    const dateToInput = document.getElementById('filterDateTo');
+
+    if (dateFromInput) dateFromInput.value = dateFrom;
+    if (dateToInput) dateToInput.value = dateTo;
+}
+
 // Load filter options
 async function loadFilters() {
     try {
@@ -70,6 +100,29 @@ function setupFilterForm() {
     // Auto-submit on select change
     form.querySelectorAll('select').forEach(select => {
         select.addEventListener('change', () => {
+            if (select.id === 'filterCurrent') {
+                syncDateInputsFromCurrent(select.value);
+            }
+            currentPage = 1;
+            loadEvents();
+            saveFiltersToURL();
+        });
+    });
+
+    ['filterDateFrom', 'filterDateTo'].forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        input.addEventListener('change', () => {
+            const currentSelect = document.getElementById('filterCurrent');
+            if (currentSelect) {
+                const { dateFrom, dateTo } = getCurrentDateRange(currentSelect.value || 'today');
+                if (input.id === 'filterDateFrom' && input.value !== dateFrom) {
+                    currentSelect.value = '';
+                }
+                if (input.id === 'filterDateTo' && input.value !== dateTo) {
+                    currentSelect.value = '';
+                }
+            }
             currentPage = 1;
             loadEvents();
             saveFiltersToURL();
@@ -93,6 +146,11 @@ function setupFilterForm() {
 
 function loadFiltersFromURL() {
     const params = new URLSearchParams(window.location.search);
+    const current = params.get('current') || 'today';
+    const currentSelect = document.getElementById('filterCurrent');
+    if (currentSelect) {
+        currentSelect.value = ['yesterday', 'today', 'tomorrow'].includes(current) ? current : 'today';
+    }
     
     const locationId = params.get('location_id');
     if (locationId) {
@@ -116,12 +174,16 @@ function loadFiltersFromURL() {
     if (dateFrom) {
         const input = document.getElementById('filterDateFrom');
         if (input) input.value = dateFrom;
+    } else {
+        syncDateInputsFromCurrent(currentSelect?.value || 'today');
     }
 
     const dateTo = params.get('date_to');
     if (dateTo) {
         const input = document.getElementById('filterDateTo');
         if (input) input.value = dateTo;
+    } else if (!dateFrom) {
+        syncDateInputsFromCurrent(currentSelect?.value || 'today');
     }
 
     const search = params.get('search');
@@ -138,6 +200,8 @@ function loadFiltersFromURL() {
 
 function saveFiltersToURL() {
     const params = {};
+    const current = document.getElementById('filterCurrent')?.value;
+    if (current) params.current = current;
     
     const locationId = document.getElementById('filterLocation')?.value;
     if (locationId) params.location_id = locationId;
@@ -187,19 +251,18 @@ async function loadEvents() {
         if (dateFrom) {
             params.append('date_from', dateFrom);
         } else {
-            // Default to today
-            const today = new Date().toISOString().split('T')[0];
-            params.append('date_from', today);
+            const current = document.getElementById('filterCurrent')?.value || 'today';
+            const range = getCurrentDateRange(current);
+            params.append('date_from', range.dateFrom);
         }
 
         const dateTo = document.getElementById('filterDateTo')?.value;
         if (dateTo) {
             params.append('date_to', dateTo);
         } else {
-            // Default to tomorrow
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            params.append('date_to', tomorrow.toISOString().split('T')[0]);
+            const current = document.getElementById('filterCurrent')?.value || 'today';
+            const range = getCurrentDateRange(current);
+            params.append('date_to', range.dateTo);
         }
 
         const search = document.getElementById('filterSearch')?.value;
@@ -240,36 +303,34 @@ async function loadEvents() {
 function renderEventCard(event) {
     const imageUrl = (event.image_url && event.image_url.trim()) ? event.image_url : '/assets/images/placeholder.jpg';
     const eventDate = Utils.formatDate(event.event_date);
-    const price = event.entrance_fee > 0
-        ? Utils.formatCurrency(event.entrance_fee)
-        : 'Free';
+    const organizer = event.organization_name || event.organizer;
 
     return `
         <div class="event-card">
             <div class="event-card-image">
                 <img src="${Utils.escapeHtml(imageUrl)}" alt="${Utils.escapeHtml(event.title)}"
                      onerror="this.onerror=null; this.src='/assets/images/placeholder.jpg'">
-                <span class="event-card-badge">${Utils.escapeHtml(event.event_type)}</span>
             </div>
             <div class="event-card-content">
+                <h3 class="event-card-title">
+                    <a href="/event.html?id=${event.id}">${Utils.escapeHtml(event.title)}</a>
+                </h3>
                 <div class="event-card-date">
                     <span>📅</span>
                     <span>${eventDate}${event.event_time ? ' • ' + event.event_time : ''}</span>
                 </div>
-                <h3 class="event-card-title">
-                    <a href="/event.html?id=${event.id}">${Utils.escapeHtml(event.title)}</a>
-                </h3>
+                <div class="event-card-location">
+                    <span>🧘</span>
+                    <span>${Utils.escapeHtml(event.event_type)}</span>
+                </div>
                 <div class="event-card-location">
                     <span>📍</span>
                     <span>${Utils.escapeHtml(event.location)}</span>
                 </div>
                 <p class="event-card-organizer">
-                    by ${Utils.escapeHtml(event.organization_name || event.organizer)}
+                    <span>🏢</span>
+                    <span>${Utils.escapeHtml(organizer)}</span>
                 </p>
-            </div>
-            <div class="event-card-footer">
-                <span class="event-card-price">${price}</span>
-                <span class="event-card-type">${Utils.escapeHtml(event.entrance_type)}</span>
             </div>
         </div>
     `;

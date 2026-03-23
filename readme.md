@@ -218,7 +218,7 @@ zenbali/
      - Email: `admin@zenbali.org`
      - Password: `admin123`
 
-   > **Note:** See [test.md](test.md) for detailed testing instructions.
+   > **Note:** See [reference/testing.md](reference/testing.md) for detailed testing instructions.
 
 4. **Stop the application**
    ```bash
@@ -283,7 +283,7 @@ JWT_EXPIRY_HOURS=24
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_CENTS=1000
+STRIPE_PRICE_CENTS=500
 
 # Local Storage
 UPLOAD_DIR=./uploads
@@ -437,7 +437,7 @@ lsof -i :8080
 lsof -ti:8080 | xargs kill -9
 
 # Check server logs
-tail -f server.log
+tail -f logs/server.log
 ```
 
 ---

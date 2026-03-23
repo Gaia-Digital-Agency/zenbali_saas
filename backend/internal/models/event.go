@@ -92,6 +92,7 @@ type EventListResponse struct {
 
 type EventResponse struct {
 	ID                   uuid.UUID `json:"id"`
+	CreatorID            uuid.UUID `json:"creator_id"`
 	Title                string    `json:"title"`
 	EventDate            string    `json:"event_date"`
 	EventTime            string    `json:"event_time,omitempty"`
@@ -154,6 +155,7 @@ func (e *Event) ToResponse() *EventResponse {
 
 	return &EventResponse{
 		ID:                   e.ID,
+		CreatorID:            e.CreatorID,
 		Title:                e.Title,
 		EventDate:            e.EventDate.Format("2006-01-02"),
 		EventTime:            eventTime,

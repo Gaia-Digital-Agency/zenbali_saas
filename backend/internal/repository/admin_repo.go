@@ -82,20 +82,16 @@ func (r *AdminRepository) GetByEmail(ctx context.Context, email string) (*models
 }
 
 func (r *AdminRepository) EnsureDefaultAdmin(ctx context.Context, email, passwordHash string) error {
-	// Check if admin exists
-	existing, err := r.GetByEmail(ctx, email)
-	if err != nil {
-		return err
-	}
-	if existing != nil {
-		return nil // Admin already exists
-	}
-
-	// Create default admin
-	admin := &models.Admin{
-		Email:        email,
-		PasswordHash: passwordHash,
-		Name:         "Admin",
-	}
-	return r.Create(ctx, admin)
+	query := `
+		INSERT INTO admins (email, password_hash, name, is_active)
+		VALUES ($1, $2, $3, true)
+		ON CONFLICT (email)
+		DO UPDATE SET
+			password_hash = EXCLUDED.password_hash,
+			name = EXCLUDED.name,
+			is_active = true,
+			updated_at = NOW()
+	`
+	_, err := r.pool.Exec(ctx, query, email, passwordHash, "Admin")
+	return err
 }

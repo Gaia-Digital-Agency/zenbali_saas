@@ -17,17 +17,18 @@ type Config struct {
 	Stripe   StripeConfig
 	Upload   UploadConfig
 	Admin    AdminConfig
+	Creator  CreatorConfig
 }
 
 type DatabaseConfig struct {
-	Host            string
-	Port            string
-	User            string
-	Password        string
-	Name            string
-	SSLMode         string
-	MaxConnections  int
-	MaxIdleConns    int
+	Host           string
+	Port           string
+	User           string
+	Password       string
+	Name           string
+	SSLMode        string
+	MaxConnections int
+	MaxIdleConns   int
 }
 
 type JWTConfig struct {
@@ -53,6 +54,11 @@ type AdminConfig struct {
 	Password string
 }
 
+type CreatorConfig struct {
+	Email    string
+	Password string
+}
+
 func Load() (*Config, error) {
 	// Load .env file if exists (development)
 	// Try current directory first, then parent directory
@@ -65,14 +71,14 @@ func Load() (*Config, error) {
 		Env:     getEnv("ENV", "development"),
 		BaseURL: getEnv("BASE_URL", "http://localhost:8080"),
 		Database: DatabaseConfig{
-			Host:            getEnv("DB_HOST", "localhost"),
-			Port:            getEnv("DB_PORT", "5432"),
-			User:            getEnv("DB_USER", "zenbali"),
-			Password:        getEnv("DB_PASSWORD", "zenbali_dev_password"),
-			Name:            getEnv("DB_NAME", "zenbali"),
-			SSLMode:         getEnv("DB_SSL_MODE", "disable"),
-			MaxConnections:  getEnvInt("DB_MAX_CONNECTIONS", 25),
-			MaxIdleConns:    getEnvInt("DB_MAX_IDLE_CONNECTIONS", 5),
+			Host:           getEnv("DB_HOST", "localhost"),
+			Port:           getEnv("DB_PORT", "5432"),
+			User:           getEnv("DB_USER", "zenbali"),
+			Password:       getEnv("DB_PASSWORD", "zenbali_dev_password"),
+			Name:           getEnv("DB_NAME", "zenbali"),
+			SSLMode:        getEnv("DB_SSL_MODE", "disable"),
+			MaxConnections: getEnvInt("DB_MAX_CONNECTIONS", 25),
+			MaxIdleConns:   getEnvInt("DB_MAX_IDLE_CONNECTIONS", 5),
 		},
 		JWT: JWTConfig{
 			Secret:      getEnv("JWT_SECRET", "default-dev-secret-change-in-production-min-32-chars"),
@@ -82,7 +88,7 @@ func Load() (*Config, error) {
 			SecretKey:      getEnv("STRIPE_SECRET_KEY", ""),
 			PublishableKey: getEnv("STRIPE_PUBLISHABLE_KEY", ""),
 			WebhookSecret:  getEnv("STRIPE_WEBHOOK_SECRET", ""),
-			PriceCents:     int64(getEnvInt("STRIPE_PRICE_CENTS", 1000)),
+			PriceCents:     int64(getEnvInt("STRIPE_PRICE_CENTS", 500)),
 		},
 		Upload: UploadConfig{
 			Dir:        getEnv("UPLOAD_DIR", "./uploads"),
@@ -91,7 +97,11 @@ func Load() (*Config, error) {
 		},
 		Admin: AdminConfig{
 			Email:    getEnv("ADMIN_EMAIL", "admin@zenbali.org"),
-			Password: getEnv("ADMIN_PASSWORD", "admin123"),
+			Password: getEnv("ADMIN_PASSWORD", "Teameditor@123"),
+		},
+		Creator: CreatorConfig{
+			Email:    getEnv("CREATOR_EMAIL", "creator@zenbali.org"),
+			Password: getEnv("CREATOR_PASSWORD", "admin123"),
 		},
 	}
 

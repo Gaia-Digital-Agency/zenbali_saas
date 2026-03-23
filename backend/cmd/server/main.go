@@ -64,6 +64,13 @@ func main() {
 		Visitor: services.NewVisitorService(repos),
 	}
 
+	if err := svcs.Auth.EnsureDefaultAdmin(context.Background(), cfg.Admin.Email, cfg.Admin.Password); err != nil {
+		log.Fatalf("Failed to ensure default admin: %v", err)
+	}
+	if err := svcs.Auth.EnsureDefaultCreator(context.Background(), cfg.Creator.Email, cfg.Creator.Password); err != nil {
+		log.Fatalf("Failed to ensure default creator: %v", err)
+	}
+
 	// Initialize handlers
 	h := handlers.New(svcs, repos, cfg)
 
@@ -123,6 +130,7 @@ func main() {
 			r.Delete("/creator/events/{id}", h.Creator.DeleteEvent)
 			r.Post("/creator/events/{id}/upload-image", h.Creator.UploadEventImage)
 			r.Post("/creator/events/{id}/pay", h.Creator.CreatePaymentSession)
+			r.Get("/creator/events/{id}/verify-payment", h.Creator.VerifyPaymentSession)
 			r.Get("/creator/payments", h.Creator.ListPayments)
 		})
 
@@ -135,10 +143,13 @@ func main() {
 
 			r.Get("/admin/dashboard", h.Admin.Dashboard)
 			r.Get("/admin/events", h.Admin.ListEvents)
+			r.Post("/admin/events", h.Admin.CreateEvent)
 			r.Put("/admin/events/{id}", h.Admin.UpdateEvent)
 			r.Delete("/admin/events/{id}", h.Admin.DeleteEvent)
 			r.Get("/admin/creators", h.Admin.ListCreators)
+			r.Post("/admin/creators", h.Admin.CreateCreator)
 			r.Put("/admin/creators/{id}", h.Admin.UpdateCreator)
+			r.Delete("/admin/creators/{id}", h.Admin.DeleteCreator)
 			r.Get("/admin/payments", h.Admin.ListPayments)
 			r.Get("/admin/payments/export", h.Admin.ExportPayments)
 			r.Get("/admin/settings/locations", h.Admin.ListLocations)

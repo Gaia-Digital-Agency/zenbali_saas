@@ -40,8 +40,11 @@
                         
                         <div class="form-group">
                             <label class="form-label">Password <span class="required">*</span></label>
-                            <input type="password" name="password" class="form-control" required 
-                                   placeholder="••••••••">
+                            <div class="password-field password-field-inline">
+                                <input type="password" name="password" class="form-control" required 
+                                       placeholder="••••••••">
+                                <button type="button" class="password-toggle" data-password-toggle="password" aria-pressed="false">Show</button>
+                            </div>
                         </div>
                         
                         <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn">

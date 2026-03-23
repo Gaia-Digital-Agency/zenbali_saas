@@ -34,7 +34,7 @@
                 Find yoga retreats, healing sessions, workshops, concerts, and more happening across the island
             </p>
             <a href="/creator/register.html" class="btn btn-lg" style="background: white; color: var(--orange-600);">
-                Post Your Event - $10
+                Post Your Event - $5
             </a>
         </div>
     </section>
@@ -45,6 +45,14 @@
             <!-- Filters -->
             <div class="filters">
                 <form id="filterForm" class="filter-row">
+                    <div class="filter-group">
+                        <label>Current</label>
+                        <select id="filterCurrent" name="current">
+                            <option value="yesterday">Yesterday</option>
+                            <option value="today" selected>Today</option>
+                            <option value="tomorrow">Tomorrow</option>
+                        </select>
+                    </div>
                     <div class="filter-group">
                         <label>Location</label>
                         <select id="filterLocation" name="location_id">
@@ -110,11 +118,11 @@
     </footer>
 
     <script src="/js/main.js"></script>
-    <script src="/js/events.js"></script>
+    <script src="/js/events.js?v=20260323"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Load filters
-            loadFilters();
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load filters first so default date/current state is ready before events request
+            await loadFilters();
             // Load events
             loadEvents();
             // Track visitor

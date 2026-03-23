@@ -2,7 +2,7 @@
 
 ## Overview
 
-Zen Bali uses **Stripe** for payment processing. Creators pay **$10 USD per event posting**, and events are automatically published upon successful payment.
+Zen Bali uses **Stripe** for payment processing. Creators pay **$5 USD per event posting**, and events are automatically published upon successful payment.
 
 ## Current Status
 ✅ **Stripe Integration is FULLY IMPLEMENTED and ACTIVE**
@@ -31,7 +31,7 @@ Event appears on public site
 ```
 
 ### Pricing
-- **Event Posting Fee**: $10.00 USD (1000 cents)
+- **Event Posting Fee**: $5.00 USD (500 cents)
 - **Payment Method**: Credit/Debit Card via Stripe Checkout
 - **Mode**: One-time payment (not subscription)
 
@@ -46,7 +46,7 @@ Located in `.env`:
 STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxx
 STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxx
 STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxxxxxxxxx
-STRIPE_PRICE_CENTS=1000
+STRIPE_PRICE_CENTS=500
 ```
 
 **Key Types:**
@@ -82,7 +82,7 @@ Stripe: StripeConfig{
     SecretKey:      getEnv("STRIPE_SECRET_KEY", ""),
     PublishableKey: getEnv("STRIPE_PUBLISHABLE_KEY", ""),
     WebhookSecret:  getEnv("STRIPE_WEBHOOK_SECRET", ""),
-    PriceCents:     int64(getEnvInt("STRIPE_PRICE_CENTS", 1000)),
+    PriceCents:     int64(getEnvInt("STRIPE_PRICE_CENTS", 500)),
 }
 ```
 
@@ -171,7 +171,7 @@ Content-Type: application/json
                        Name:        stripe.String("Event Posting Fee - " + event.Title),
                        Description: stripe.String("Zen Bali event posting fee"),
                    },
-                   UnitAmount: stripe.Int64(1000), // $10.00
+                   UnitAmount: stripe.Int64(500), // $5.00
                },
                Quantity: stripe.Int64(1),
            },
@@ -538,7 +538,7 @@ In development, if `STRIPE_WEBHOOK_SECRET` is empty, the webhook handler accepts
       {
         "id": "payment-uuid",
         "event_id": "event-uuid",
-        "amount_cents": 1000,
+        "amount_cents": 500,
         "currency": "USD",
         "status": "completed",
         "stripe_session_id": "cs_test_...",
@@ -611,7 +611,7 @@ import "github.com/stripe/stripe-go/v76/refund"
 
 params := &stripe.RefundParams{
     PaymentIntent: stripe.String("pi_xxxxx"),
-    Amount:        stripe.Int64(1000), // Full refund
+    Amount:        stripe.Int64(500), // Full refund
 }
 refund, err := refund.New(params)
 ```

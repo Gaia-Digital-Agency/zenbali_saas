@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Events - Zen Bali</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
                 <nav class="nav">
-                    <a href="/creator/dashboard.html" class="nav-link">Dashboard</a>
-                    <a href="/creator/events.html" class="nav-link active">My Events</a>
-                    <a href="/creator/new-event.html" class="nav-link">Post Event</a>
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="events.html" class="nav-link active">My Events</a>
+                    <a href="new-event.html" class="nav-link">Post Event</a>
                     <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
                 </nav>
             </div>
@@ -25,7 +25,7 @@
         <div class="container">
             <div class="d-flex justify-between align-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
                 <h1>My Events</h1>
-                <a href="/creator/new-event.html" class="btn btn-primary">+ Post New Event</a>
+                <a href="new-event.html" class="btn btn-primary">+ Post New Event</a>
             </div>
 
             <div class="card">
@@ -52,8 +52,8 @@
         </div></div>
     </footer>
 
-    <script src="/js/main.js"></script>
-    <script src="/js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         let includePast = false;
 
@@ -84,7 +84,7 @@
                                 <div class="empty-state-icon">📅</div>
                                 <h3 class="empty-state-title">No events found</h3>
                                 <p class="empty-state-text">Create your first event to get started.</p>
-                                <a href="/creator/new-event.html" class="btn btn-primary">Post New Event</a>
+                                <a href="${Utils.appUrl('/creator/new-event.html')}" class="btn btn-primary">Post New Event</a>
                             </div>
                         `;
                         return;
@@ -123,9 +123,9 @@
                                             </td>
                                             <td>
                                                 <div class="d-flex gap-1" style="flex-wrap: wrap;">
-                                                    <a href="/event.html?id=${event.id}" target="_blank" class="btn btn-sm btn-outline">View</a>
-                                                    <a href="/creator/edit-event.html?id=${event.id}" class="btn btn-sm btn-secondary">Edit</a>
-                                                    ${!event.is_paid ? `<button onclick="payForEvent('${event.id}')" class="btn btn-sm btn-primary">Pay $5</button>` : ''}
+                                                    <a href="${Utils.appUrl(`/event.html?id=${event.id}`)}" target="_blank" class="btn btn-sm btn-outline">View</a>
+                                                    <a href="${Utils.appUrl(`/creator/edit-event.html?id=${event.id}`)}" class="btn btn-sm btn-secondary">Edit</a>
+                                                    ${!event.is_paid ? `<button onclick="payForEvent('${event.id}')" class="btn btn-sm btn-primary">Pay $1</button>` : ''}
                                                     <button onclick="deleteEvent('${event.id}', '${Utils.escapeHtml(event.title)}')" class="btn btn-sm btn-danger">Delete</button>
                                                 </div>
                                             </td>

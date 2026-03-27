@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Event - Zen Bali</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
                 <nav class="nav">
-                    <a href="/creator/dashboard.html" class="nav-link">Dashboard</a>
-                    <a href="/creator/events.html" class="nav-link">My Events</a>
-                    <a href="/creator/new-event.html" class="nav-link">Post Event</a>
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="events.html" class="nav-link">My Events</a>
+                    <a href="new-event.html" class="nav-link">Post Event</a>
                     <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
                 </nav>
             </div>
@@ -79,8 +79,8 @@
         </div></div>
     </footer>
 
-    <script src="/js/main.js"></script>
-    <script src="/js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         let eventId = null;
         let eventData = null;
@@ -90,7 +90,7 @@
             
             eventId = Utils.getQueryParam('id');
             if (!eventId) {
-                window.location.href = '/creator/events.html';
+                window.location.href = Utils.appUrl('/creator/events.html');
                 return;
             }
 
@@ -177,9 +177,9 @@
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Entrance Fee (Rupiah)</label>
-                                <input type="number" name="entrance_fee" class="form-control" min="0" step="5000" inputmode="numeric" placeholder="50000" value="${eventData.entrance_fee || 0}">
-                                <span class="form-hint">Use Rp 5,000 increments. Example: 50000, 75000, 100000.</span>
+                                <label class="form-label">Price ('000)</label>
+                                <input type="number" name="price_thousands" class="form-control" min="0" max="100000" step="1" inputmode="numeric" placeholder="150" value="${Math.round((eventData.entrance_fee || 0) / 1000)}">
+                                <span class="form-hint">Enter an integer from 0 to 100000. Example: 150 means IDR 150,000.</span>
                             </div>
                         </div>
 
@@ -201,7 +201,7 @@
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary" id="submitBtn">Save Changes</button>
-                        <a href="/creator/events.html" class="btn btn-secondary">Back to Events</a>
+                        <a href="events.html" class="btn btn-secondary">Back to Events</a>
                     </div>
                 </form>
             `;
@@ -217,7 +217,7 @@
                     <div class="text-center">
                         <span class="badge badge-success" style="font-size: 1rem; padding: 0.5rem 1rem;">✓ Published</span>
                         <p class="text-muted mt-2 mb-0">Your event is live!</p>
-                        <a href="/event.html?id=${eventId}" target="_blank" class="btn btn-outline btn-block mt-2">View Event</a>
+                        <a href="${Utils.appUrl(`/event.html?id=${eventId}`)}" target="_blank" class="btn btn-outline btn-block mt-2">View Event</a>
                     </div>
                 `;
             } else if (eventData.is_paid) {
@@ -246,6 +246,7 @@
 
             try {
                 const form = e.target;
+                const priceThousands = parseInt(form.price_thousands.value || '0', 10) || 0;
                 const data = {
                     title: form.title.value,
                     event_date: form.event_date.value,
@@ -254,7 +255,8 @@
                     event_type_id: parseInt(form.event_type_id.value),
                     duration: form.duration.value,
                     entrance_type_id: parseInt(form.entrance_type_id.value),
-                    entrance_fee: parseFloat(form.entrance_fee.value) || 0,
+                    price_thousands: priceThousands,
+                    entrance_fee: priceThousands * 1000,
                     contact_email: form.contact_email.value,
                     contact_mobile: form.contact_mobile.value,
                     notes: form.notes.value

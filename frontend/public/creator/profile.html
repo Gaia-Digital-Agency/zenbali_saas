@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile - Zen Bali</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/" class="logo">
+                <a href="../" class="logo">
                     <span>🌴</span>
                     <span>Zen Bali</span>
                 </a>
                 <nav class="nav">
-                    <a href="/creator/dashboard.html" class="nav-link">My Events</a>
-                    <a href="/creator/new-event.html" class="nav-link">Create Event</a>
-                    <a href="/creator/profile.html" class="nav-link active">Profile</a>
+                    <a href="dashboard.html" class="nav-link">My Events</a>
+                    <a href="new-event.html" class="nav-link">Create Event</a>
+                    <a href="profile.html" class="nav-link active">Profile</a>
                     <button onclick="Auth.logout()" class="btn btn-secondary btn-sm">Logout</button>
                 </nav>
             </div>
@@ -103,8 +103,8 @@
         </div>
     </footer>
 
-    <script src="/js/main.js"></script>
-    <script src="/js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             requireAuth();

@@ -5,7 +5,8 @@
    =========================================== */
 
 // API Configuration
-const API_BASE = '/api';
+const APP_BASE = window.location.pathname.startsWith('/zenbali') ? '/zenbali' : '';
+const API_BASE = `${APP_BASE}/api`;
 
 // Token Management
 const Auth = {
@@ -34,7 +35,7 @@ const Auth = {
     logout() {
         this.removeToken();
         this.removeUser();
-        window.location.href = '/';
+        window.location.href = Utils.appUrl('/');
     }
 };
 
@@ -120,6 +121,13 @@ const API = {
 
 // Utility Functions
 const Utils = {
+    appUrl(path = '/') {
+        if (!path.startsWith('/')) {
+            path = `/${path}`;
+        }
+        return `${APP_BASE}${path}`;
+    },
+
     formatDate(dateStr) {
         const date = new Date(dateStr);
         return date.toLocaleDateString('en-US', {

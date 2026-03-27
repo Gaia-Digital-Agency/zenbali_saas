@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,10 +27,25 @@ func NewEventService(repos *repository.Repositories, upload *UploadService) *Eve
 	return &EventService{repos: repos, upload: upload}
 }
 
+func resolveEntranceFee(entranceFee float64, priceThousands *int) (float64, error) {
+	if priceThousands == nil {
+		return entranceFee, nil
+	}
+	if *priceThousands < 0 || *priceThousands > 100000 {
+		return 0, fmt.Errorf("price_thousands must be between 0 and 100000")
+	}
+	return float64(*priceThousands * 1000), nil
+}
+
 func (s *EventService) Create(ctx context.Context, creatorID uuid.UUID, req *models.EventCreateRequest) (*models.Event, error) {
 	eventDate, err := time.Parse("2006-01-02", req.EventDate)
 	if err != nil {
 		return nil, ErrInvalidDate
+	}
+
+	entranceFee, err := resolveEntranceFee(req.EntranceFee, req.PriceThousands)
+	if err != nil {
+		return nil, err
 	}
 
 	var eventTime *string
@@ -71,7 +87,7 @@ func (s *EventService) Create(ctx context.Context, creatorID uuid.UUID, req *mod
 		EventTypeID:          req.EventTypeID,
 		Duration:             duration,
 		EntranceTypeID:       req.EntranceTypeID,
-		EntranceFee:          req.EntranceFee,
+		EntranceFee:          entranceFee,
 		ParticipantGroupType: participantGroupType,
 		LeadBy:               leadBy,
 		ContactEmail:         req.ContactEmail,
@@ -143,8 +159,14 @@ func (s *EventService) Update(ctx context.Context, id, creatorID uuid.UUID, req 
 	if req.EntranceTypeID > 0 {
 		event.EntranceTypeID = req.EntranceTypeID
 	}
-	if req.EntranceFee >= 0 {
-		event.EntranceFee = req.EntranceFee
+	if req.PriceThousands != nil {
+		entranceFee, err := resolveEntranceFee(0, req.PriceThousands)
+		if err != nil {
+			return nil, err
+		}
+		event.EntranceFee = entranceFee
+	} else if req.EntranceFee != nil {
+		event.EntranceFee = *req.EntranceFee
 	}
 	if req.ContactEmail != "" {
 		event.ContactEmail = req.ContactEmail

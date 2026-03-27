@@ -11,17 +11,29 @@
 
 
 **Version:** 1.0.0
-**Last Updated:** 2026-01-10
+**Last Updated:** 2026-03-27
 
 ## Base URL
 - **Development:** `http://localhost:8081/api`
-- **Production:** `https://zenbali.org/api`
+- **Production:** `https://zenbali.site/api`
 
 ## Authentication
 Most creator and admin endpoints require a Bearer Token in the `Authorization` header.
 
 ```http
 Authorization: Bearer <your_jwt_token>
+```
+
+The Zack machine endpoint uses either:
+
+```http
+Authorization: Bearer <agent_api_token>
+```
+
+or:
+
+```http
+X-Agent-Token: <agent_api_token>
 ```
 
 ---
@@ -168,6 +180,94 @@ Retrieves a single event by its ID.
 `GET /api/admin/settings/event-types`
 `POST /api/admin/settings/event-types`
 `PUT /api/admin/settings/event-types/{id}`
+
+---
+
+## Agent Endpoints
+
+These endpoints are intended for Zack/OpenClaw and use `AGENT_API_TOKEN`, not a creator/admin JWT.
+
+### Create And Publish Event
+`POST /api/agent/events`
+
+Creates an event for the configured `AGENT_CREATOR_EMAIL` account, marks it `is_paid=true`, and publishes it immediately.
+
+**Body:**
+```json
+{
+  "title": "Ecstatic Dance Ubud",
+  "event_date": "2026-04-10",
+  "event_time": "19:15",
+  "location": "Ubud",
+  "event_type": "Dance",
+  "duration_days": 0,
+  "duration_hours": 2,
+  "duration_minutes": 30,
+  "entrance_type": "Paid",
+  "participant_group_type": "Adults",
+  "lead_by": "Maya",
+  "venue": "Lotus Studio",
+  "contact_email": "hello@example.com",
+  "contact_mobile": "+628123456789",
+  "event_description": "Sunset dance journey with live DJ.",
+  "image_url": "https://example.com/event.jpg",
+  "price_thousands": 150,
+  "entrance_fee": 150000
+}
+```
+
+**Notes:**
+- `location`, `event_type`, and `entrance_type` can be sent as either the reference name or numeric ID.
+- `event_time` must be in 15-minute increments.
+- `duration_minutes` must be in 15-minute increments.
+- `price_thousands` is the preferred price input. It accepts an integer from `0` to `100000`, where `1` means `IDR 1,000`.
+- `entrance_fee` remains supported for backward compatibility and stores the full rupiah amount.
+- `image_url` should be a publicly reachable image URL extracted or uploaded by Zack.
+- If Zack has only the raw image file, upload it first with `POST /api/agent/uploads/event-image` and use the returned `image_url`.
+
+**Field Mapping For Zack Extraction:**
+- `e9` -> `title`
+- `e10` -> `event_date`
+- `e11` -> `event_time`
+- `e109` -> `location`
+- `e136` -> `event_type`
+- `e163` -> `duration_days`
+- `e166` -> `duration_hours`
+- `e191` -> `duration_minutes`
+- `e196` -> `entrance_type`
+- `e253` -> `participant_group_type`
+- `e259` -> `lead_by`
+- `e260` -> `venue`
+- `e261` -> `contact_email`
+- `e262` -> `contact_mobile`
+- `e263` -> `event_description`
+- `e267` -> `image_url`
+
+---
+
+### Upload Event Image
+`POST /api/agent/uploads/event-image`
+
+Uploads a raw image file for Zack and returns a public `image_url` suitable for `e267` / `image_url` in the event payload.
+
+**Request:**
+- Content type: `multipart/form-data`
+- Form field: `image`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "image_url": "https://storage.googleapis.com/your-bucket/zenbali/abc123.jpg"
+  }
+}
+```
+
+**Notes:**
+- Allowed file types: `jpg`, `jpeg`, `png`, `webp`
+- Max size follows `MAX_UPLOAD_SIZE_MB`
+- This endpoint uses the same agent token as `POST /api/agent/events`
 
 ---
 

@@ -182,6 +182,10 @@ func (h *CreatorHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 			utils.BadRequest(w, "Invalid date format. Use YYYY-MM-DD")
 			return
 		}
+		if err.Error() == "price_thousands must be between 0 and 100000" {
+			utils.BadRequest(w, err.Error())
+			return
+		}
 		log.Printf("ERROR creating event for creator %s: %v", creator.ID, err)
 		utils.InternalError(w, "Failed to create event")
 		return
@@ -255,6 +259,10 @@ func (h *CreatorHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		case services.ErrInvalidDate:
 			utils.BadRequest(w, "Invalid date format")
 		default:
+			if err.Error() == "price_thousands must be between 0 and 100000" {
+				utils.BadRequest(w, err.Error())
+				return
+			}
 			utils.InternalError(w, "Failed to update event")
 		}
 		return

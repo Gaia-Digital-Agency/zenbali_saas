@@ -26,9 +26,9 @@ func (r *EventRepository) Create(ctx context.Context, event *models.Event) error
 		INSERT INTO events (
 			creator_id, title, event_date, event_time, location_id, event_type_id,
 			duration, entrance_type_id, entrance_fee, participant_group_type, lead_by,
-			contact_email, contact_mobile, notes
+			venue, contact_email, contact_mobile, notes
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
 		RETURNING id, created_at, updated_at
 	`
 	return r.pool.QueryRow(ctx, query,
@@ -43,6 +43,7 @@ func (r *EventRepository) Create(ctx context.Context, event *models.Event) error
 		event.EntranceFee,
 		event.ParticipantGroupType,
 		event.LeadBy,
+		event.Venue,
 		event.ContactEmail,
 		event.ContactMobile,
 		event.Notes,
@@ -55,7 +56,7 @@ func (r *EventRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Ev
 		SELECT
 			e.id, e.creator_id, e.title, e.event_date, e.event_time::text, e.location_id,
 			e.event_type_id, e.duration, e.entrance_type_id, e.entrance_fee,
-			e.participant_group_type, e.lead_by,
+			e.participant_group_type, e.lead_by, e.venue,
 			e.contact_email, e.contact_mobile, e.notes, e.image_url,
 			e.is_paid, e.is_published, e.created_at, e.updated_at,
 			c.name as creator_name, c.organization_name,
@@ -70,7 +71,7 @@ func (r *EventRepository) GetByID(ctx context.Context, id uuid.UUID) (*models.Ev
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&event.ID, &event.CreatorID, &event.Title, &event.EventDate, &event.EventTime,
 		&event.LocationID, &event.EventTypeID, &event.Duration, &event.EntranceTypeID,
-		&event.EntranceFee, &event.ParticipantGroupType, &event.LeadBy,
+		&event.EntranceFee, &event.ParticipantGroupType, &event.LeadBy, &event.Venue,
 		&event.ContactEmail, &event.ContactMobile, &event.Notes,
 		&event.ImageURL, &event.IsPaid, &event.IsPublished, &event.CreatedAt, &event.UpdatedAt,
 		&event.CreatorName, &event.OrganizationName, &event.LocationName,
@@ -90,15 +91,15 @@ func (r *EventRepository) Update(ctx context.Context, event *models.Event) error
 		UPDATE events
 		SET title = $1, event_date = $2, event_time = $3, location_id = $4,
 		    event_type_id = $5, duration = $6, entrance_type_id = $7, entrance_fee = $8,
-		    participant_group_type = $9, lead_by = $10,
-		    contact_email = $11, contact_mobile = $12, notes = $13, updated_at = NOW()
-		WHERE id = $14
+		    participant_group_type = $9, lead_by = $10, venue = $11,
+		    contact_email = $12, contact_mobile = $13, notes = $14, updated_at = NOW()
+		WHERE id = $15
 	`
 	_, err := r.pool.Exec(ctx, query,
 		event.Title, event.EventDate, event.EventTime, event.LocationID,
 		event.EventTypeID, event.Duration, event.EntranceTypeID, event.EntranceFee,
 		event.ParticipantGroupType, event.LeadBy,
-		event.ContactEmail, event.ContactMobile, event.Notes, event.ID,
+		event.Venue, event.ContactEmail, event.ContactMobile, event.Notes, event.ID,
 	)
 	return err
 }
@@ -235,7 +236,7 @@ func (r *EventRepository) List(ctx context.Context, filter models.EventListFilte
 		SELECT
 			e.id, e.creator_id, e.title, e.event_date, e.event_time::text, e.location_id,
 			e.event_type_id, e.duration, e.entrance_type_id, e.entrance_fee,
-			e.participant_group_type, e.lead_by,
+			e.participant_group_type, e.lead_by, e.venue,
 			e.contact_email, e.contact_mobile, e.notes, e.image_url,
 			e.is_paid, e.is_published, e.created_at, e.updated_at,
 			c.name as creator_name, c.organization_name,
@@ -256,7 +257,7 @@ func (r *EventRepository) List(ctx context.Context, filter models.EventListFilte
 		if err := rows.Scan(
 			&event.ID, &event.CreatorID, &event.Title, &event.EventDate, &event.EventTime,
 			&event.LocationID, &event.EventTypeID, &event.Duration, &event.EntranceTypeID,
-			&event.EntranceFee, &event.ParticipantGroupType, &event.LeadBy,
+			&event.EntranceFee, &event.ParticipantGroupType, &event.LeadBy, &event.Venue,
 			&event.ContactEmail, &event.ContactMobile, &event.Notes,
 			&event.ImageURL, &event.IsPaid, &event.IsPublished, &event.CreatedAt, &event.UpdatedAt,
 			&event.CreatorName, &event.OrganizationName, &event.LocationName,
@@ -287,7 +288,7 @@ func (r *EventRepository) GetRecent(ctx context.Context, limit int) ([]*models.E
 		SELECT
 			e.id, e.creator_id, e.title, e.event_date, e.event_time::text, e.location_id,
 			e.event_type_id, e.duration, e.entrance_type_id, e.entrance_fee,
-			e.participant_group_type, e.lead_by,
+			e.participant_group_type, e.lead_by, e.venue,
 			e.contact_email, e.contact_mobile, e.notes, e.image_url,
 			e.is_paid, e.is_published, e.created_at, e.updated_at,
 			c.name as creator_name, c.organization_name,
@@ -312,7 +313,7 @@ func (r *EventRepository) GetRecent(ctx context.Context, limit int) ([]*models.E
 		if err := rows.Scan(
 			&event.ID, &event.CreatorID, &event.Title, &event.EventDate, &event.EventTime,
 			&event.LocationID, &event.EventTypeID, &event.Duration, &event.EntranceTypeID,
-			&event.EntranceFee, &event.ParticipantGroupType, &event.LeadBy,
+			&event.EntranceFee, &event.ParticipantGroupType, &event.LeadBy, &event.Venue,
 			&event.ContactEmail, &event.ContactMobile, &event.Notes,
 			&event.ImageURL, &event.IsPaid, &event.IsPublished, &event.CreatedAt, &event.UpdatedAt,
 			&event.CreatorName, &event.OrganizationName, &event.LocationName,

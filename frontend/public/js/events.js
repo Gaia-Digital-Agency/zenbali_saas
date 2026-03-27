@@ -281,7 +281,7 @@ async function loadEvents() {
                         <div class="empty-state-icon">🎭</div>
                         <h3 class="empty-state-title">No events found</h3>
                         <p class="empty-state-text">Try adjusting your filters or check back later for new events.</p>
-                        <a href="/creator/register.html" class="btn btn-primary">Post an Event</a>
+                        <a href="${Utils.appUrl('/creator/register.html')}" class="btn btn-primary">Post an Event</a>
                     </div>
                 `;
             } else {
@@ -313,7 +313,7 @@ function renderEventCard(event) {
             </div>
             <div class="event-card-content">
                 <h3 class="event-card-title">
-                    <a href="/event.html?id=${event.id}">${Utils.escapeHtml(event.title)}</a>
+                    <a href="${Utils.appUrl(`/event.html?id=${event.id}`)}">${Utils.escapeHtml(event.title)}</a>
                 </h3>
                 <div class="event-card-date">
                     <span>📅</span>

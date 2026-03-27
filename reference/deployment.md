@@ -52,7 +52,7 @@ This guide covers deploying the Zen Bali application to Google Cloud Platform (G
    ```
 
 ### Domain Setup
-1. Register domain: `zenbali.org`
+1. Register domain: `zenbali.site`
 2. Configure Cloudflare for DNS and CDN
 3. Point DNS to Cloud Run (will be configured during deployment)
 
@@ -142,7 +142,7 @@ gsutil iam ch allUsers:objectViewer gs://gda-s01-bucket
 cat > cors.json <<EOF
 [
   {
-    "origin": ["https://zenbali.org", "http://localhost:8081"],
+    "origin": ["https://zenbali.site", "http://localhost:8081"],
     "method": ["GET", "POST", "DELETE"],
     "responseHeader": ["Content-Type"],
     "maxAgeSeconds": 3600
@@ -201,7 +201,7 @@ gcloud run deploy zenbali-backend \
   --cpu 1 \
   --min-instances 0 \
   --max-instances 10 \
-  --set-env-vars "ENV=production,PORT=8080,BASE_URL=https://zenbali.org" \
+  --set-env-vars "ENV=production,PORT=8080,BASE_URL=https://zenbali.site" \
   --set-secrets "DB_PASSWORD=db-password:latest,JWT_SECRET=jwt-secret:latest,STRIPE_SECRET_KEY=stripe-secret-key:latest,STRIPE_WEBHOOK_SECRET=stripe-webhook-secret:latest,ADMIN_PASSWORD=admin-password:latest" \
   --add-cloudsql-instances zenbali-production:asia-southeast1:zenbali-db \
   --set-env-vars "DB_HOST=/cloudsql/zenbali-production:asia-southeast1:zenbali-db,DB_USER=zenbali,DB_NAME=zenbali,DB_SSL_MODE=disable"
@@ -216,12 +216,12 @@ gcloud run services describe zenbali-backend --region asia-southeast1 --format="
 # Map custom domain
 gcloud run domain-mappings create \
   --service zenbali-backend \
-  --domain zenbali.org \
+  --domain zenbali.site \
   --region asia-southeast1
 
 # Get DNS records to configure in Cloudflare
 gcloud run domain-mappings describe \
-  --domain zenbali.org \
+  --domain zenbali.site \
   --region asia-southeast1
 ```
 
@@ -239,7 +239,7 @@ gcloud run domain-mappings describe \
 
 1. Log in to Stripe Dashboard
 2. Go to Developers → Webhooks
-3. Add endpoint: `https://zenbali.org/api/stripe/webhook`
+3. Add endpoint: `https://zenbali.site/api/stripe/webhook`
 4. Select events:
    - `checkout.session.completed`
    - `payment_intent.succeeded`
@@ -291,7 +291,7 @@ Set via Cloud Run environment variables and Secret Manager:
 # Environment Variables
 ENV=production
 PORT=8080
-BASE_URL=https://zenbali.org
+BASE_URL=https://zenbali.site
 DB_HOST=/cloudsql/zenbali-production:asia-southeast1:zenbali-db
 DB_USER=zenbali
 DB_NAME=zenbali

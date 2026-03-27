@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Details - Zen Bali</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/" class="logo">
+                <a href="./" class="logo">
                     <span>🌴</span>
                     <span>Zen Bali</span>
                 </a>
                 <nav class="nav">
-                    <a href="/" class="nav-link">Events</a>
-                    <a href="/creator/login.html" class="nav-link">Post Event</a>
-                    <a href="/creator/login.html" class="btn btn-primary btn-sm">Login</a>
+                    <a href="./" class="nav-link">Events</a>
+                    <a href="creator/login.html" class="nav-link">Post Event</a>
+                    <a href="creator/login.html" class="btn btn-primary btn-sm">Login</a>
                 </nav>
             </div>
         </div>
@@ -48,14 +48,14 @@
         </div>
     </footer>
 
-    <script src="/js/main.js"></script>
+    <script src="js/main.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             loadVisitorStats();
             
             const eventId = Utils.getQueryParam('id');
             if (!eventId) {
-                window.location.href = '/';
+                window.location.href = Utils.appUrl('/');
                 return;
             }
 
@@ -71,7 +71,7 @@
                     <div class="alert alert-error">
                         Event not found or no longer available.
                         <br><br>
-                        <a href="/" class="btn btn-primary">Back to Events</a>
+                        <a href="${Utils.appUrl('/')}" class="btn btn-primary">Back to Events</a>
                     </div>
                 `;
             }
@@ -87,13 +87,13 @@
             document.title = `${event.title} - Zen Bali`;
 
             document.getElementById('eventContainer').innerHTML = `
-                <a href="/" class="btn btn-secondary mb-3">← Back to Events</a>
+                <a href="${Utils.appUrl('/')}" class="btn btn-secondary mb-3">← Back to Events</a>
                 
                 <div class="card">
                     <div style="height: 400px; overflow: hidden;">
                         <img src="${Utils.escapeHtml(imageUrl)}" alt="${Utils.escapeHtml(event.title)}" 
                              style="width: 100%; height: 100%; object-fit: cover;"
-                             onerror="this.src='/assets/images/placeholder.jpg'">
+                             onerror="this.src='${Utils.appUrl('/assets/images/placeholder.jpg')}'">
                     </div>
                     
                     <div class="card-body">

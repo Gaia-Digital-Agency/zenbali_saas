@@ -9,6 +9,12 @@
 > - Event posting fee: `$5 USD` (`500` cents)
 > - Seed base state: 1 admin, 1 creator, 1 sample published event, 0 payments
 
+> Current VM deployment note as of 2026-03-23:
+> - deployed host: `https://zenbali.site`
+> - deployed backend port: `127.0.0.1:8081`
+> - VM is currently using Stripe test keys
+> - `STRIPE_WEBHOOK_SECRET` is currently blank on the VM
+
 
 ## Overview
 
@@ -726,7 +732,7 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxxxxxxxxxx
 **3. Configure Webhook Endpoint**
 - Go to Developers > Webhooks
 - Click "Add endpoint"
-- URL: `https://zenbali.org/api/webhooks/stripe`
+- URL: `https://zenbali.site/api/webhooks/stripe`
 - Events to send:
   - `checkout.session.completed`
   - `checkout.session.expired`

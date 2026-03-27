@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post Event - Zen Bali</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
                 <nav class="nav">
-                    <a href="/creator/dashboard.html" class="nav-link">Dashboard</a>
-                    <a href="/creator/events.html" class="nav-link">My Events</a>
-                    <a href="/creator/new-event.html" class="nav-link active">Post Event</a>
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="events.html" class="nav-link">My Events</a>
+                    <a href="new-event.html" class="nav-link active">Post Event</a>
                     <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
                 </nav>
             </div>
@@ -26,7 +26,7 @@
             <div class="card">
                 <div class="card-header">
                     <h1 class="card-title">Post New Event</h1>
-                    <p class="text-muted mt-1">Create your event listing - $5 USD to publish</p>
+                    <p class="text-muted mt-1">Create your event listing - $1 USD to publish</p>
                 </div>
                 <div class="card-body">
                     <div id="alertContainer"></div>
@@ -100,36 +100,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Entrance Fee (Rupiah '000)</label>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.5rem;">
-                                <div>
-                                    <label class="form-label" style="font-size: 0.875rem;">10K - 90K</label>
-                                    <select name="fee_10k" class="form-control" id="fee10k">
-                                        <option value="0">0</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="form-label" style="font-size: 0.875rem;">1K - 9K</label>
-                                    <select name="fee_1k" class="form-control" id="fee1k">
-                                        <option value="0">0</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="form-label" style="font-size: 0.875rem;">100 - 900</label>
-                                    <select name="fee_100" class="form-control" id="fee100">
-                                        <option value="0">0</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="form-label" style="font-size: 0.875rem;">10 - 90</label>
-                                    <select name="fee_10" class="form-control" id="fee10">
-                                        <option value="0">0</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <input type="text" name="fee_verbatim" class="form-control mt-2" id="feeVerbatim"
-                                   placeholder="For Rp 100 million and above, enter amount here">
-                            <input type="hidden" name="entrance_fee" id="entranceFeeHidden">
+                            <label class="form-label">Price ('000)</label>
+                            <input type="number" name="price_thousands" class="form-control" min="0" max="100000" step="1" value="0" inputmode="numeric" placeholder="150">
+                            <span class="form-hint">Enter an integer from 0 to 100000. Example: 150 means IDR 150,000.</span>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -173,7 +146,7 @@
                             <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
                                 Create Event
                             </button>
-                            <a href="/creator/dashboard.html" class="btn btn-secondary btn-lg">Cancel</a>
+                            <a href="dashboard.html" class="btn btn-secondary btn-lg">Cancel</a>
                         </div>
                     </form>
                 </div>
@@ -196,16 +169,14 @@
         </div></div>
     </footer>
 
-    <script src="/js/main.js"></script>
-    <script src="/js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             requireAuth();
             loadFormOptions();
             populateTimeDropdown();
             populateDurationDropdowns();
-            populateFeeDropdowns();
-            setupFeeCalculation();
 
             // Pre-fill contact email
             const user = Auth.getUser();
@@ -253,78 +224,6 @@
                 option.textContent = i;
                 if (i === 1) option.selected = true;
                 hoursSelect.appendChild(option);
-            }
-        }
-
-        function populateFeeDropdowns() {
-            // 10K-90K (10000, 20000, ..., 90000)
-            const fee10k = document.getElementById('fee10k');
-            for (let i = 0; i <= 9; i++) {
-                const option = document.createElement('option');
-                option.value = i * 10000;
-                option.textContent = i * 10;
-                fee10k.appendChild(option);
-            }
-
-            // 1K-9K (1000, 2000, ..., 9000)
-            const fee1k = document.getElementById('fee1k');
-            for (let i = 0; i <= 9; i++) {
-                const option = document.createElement('option');
-                option.value = i * 1000;
-                option.textContent = i;
-                fee1k.appendChild(option);
-            }
-
-            // 100-900 (100, 200, ..., 900)
-            const fee100 = document.getElementById('fee100');
-            for (let i = 0; i <= 9; i++) {
-                const option = document.createElement('option');
-                option.value = i * 100;
-                option.textContent = i;
-                fee100.appendChild(option);
-            }
-
-            // 10-90 (10, 20, ..., 90)
-            const fee10 = document.getElementById('fee10');
-            for (let i = 0; i <= 9; i++) {
-                const option = document.createElement('option');
-                option.value = i * 10;
-                option.textContent = i;
-                fee10.appendChild(option);
-            }
-        }
-
-        function setupFeeCalculation() {
-            const selects = ['fee10k', 'fee1k', 'fee100', 'fee10'];
-            selects.forEach(id => {
-                document.getElementById(id).addEventListener('change', calculateTotalFee);
-            });
-            document.getElementById('feeVerbatim').addEventListener('input', handleVerbatimFee);
-        }
-
-        function calculateTotalFee() {
-            const fee10k = parseInt(document.getElementById('fee10k').value) || 0;
-            const fee1k = parseInt(document.getElementById('fee1k').value) || 0;
-            const fee100 = parseInt(document.getElementById('fee100').value) || 0;
-            const fee10 = parseInt(document.getElementById('fee10').value) || 0;
-
-            const total = fee10k + fee1k + fee100 + fee10;
-            document.getElementById('entranceFeeHidden').value = total;
-        }
-
-        function handleVerbatimFee() {
-            const verbatim = document.getElementById('feeVerbatim').value.trim();
-            if (verbatim) {
-                const amount = parseFloat(verbatim.replace(/[^0-9.]/g, ''));
-                if (!isNaN(amount) && amount >= 100000000) {
-                    document.getElementById('entranceFeeHidden').value = amount;
-                    // Clear dropdowns
-                    ['fee10k', 'fee1k', 'fee100', 'fee10'].forEach(id => {
-                        document.getElementById(id).value = '0';
-                    });
-                }
-            } else {
-                calculateTotalFee();
             }
         }
 
@@ -379,13 +278,11 @@
             try {
                 const form = e.target;
 
-                // Calculate final entrance fee
-                calculateTotalFee();
-
                 // Build duration string
                 const days = form.duration_days.value;
                 const hours = form.duration_hours.value;
                 const mins = form.duration_minutes.value;
+                const priceThousands = parseInt(form.price_thousands.value || '0', 10) || 0;
                 let duration = '';
                 if (parseInt(days) > 0) duration += `${days} day${days > 1 ? 's' : ''} `;
                 if (parseInt(hours) > 0) duration += `${hours} hour${hours > 1 ? 's' : ''} `;
@@ -400,7 +297,8 @@
                     event_type_id: parseInt(form.event_type_id.value),
                     duration: duration,
                     entrance_type_id: parseInt(form.entrance_type_id.value),
-                    entrance_fee: parseFloat(form.entrance_fee.value) || 0,
+                    price_thousands: priceThousands,
+                    entrance_fee: priceThousands * 1000,
                     participant_group_type: form.participant_group_type.value,
                     lead_by: form.lead_by.value,
                     contact_email: form.contact_email.value,

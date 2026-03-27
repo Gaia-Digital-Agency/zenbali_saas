@@ -18,6 +18,7 @@ type Config struct {
 	Upload   UploadConfig
 	Admin    AdminConfig
 	Creator  CreatorConfig
+	Agent    AgentConfig
 }
 
 type DatabaseConfig struct {
@@ -63,6 +64,11 @@ type CreatorConfig struct {
 	Password string
 }
 
+type AgentConfig struct {
+	Token        string
+	CreatorEmail string
+}
+
 func Load() (*Config, error) {
 	// Load .env file if exists (development)
 	// Try current directory first, then parent directory
@@ -92,7 +98,7 @@ func Load() (*Config, error) {
 			SecretKey:      getEnv("STRIPE_SECRET_KEY", ""),
 			PublishableKey: getEnv("STRIPE_PUBLISHABLE_KEY", ""),
 			WebhookSecret:  getEnv("STRIPE_WEBHOOK_SECRET", ""),
-			PriceCents:     int64(getEnvInt("STRIPE_PRICE_CENTS", 500)),
+			PriceCents:     int64(getEnvInt("STRIPE_PRICE_CENTS", 100)),
 		},
 		Upload: UploadConfig{
 			Backend:       getEnv("UPLOAD_BACKEND", "local"),
@@ -110,6 +116,10 @@ func Load() (*Config, error) {
 		Creator: CreatorConfig{
 			Email:    getEnv("CREATOR_EMAIL", "creator@zenbali.org"),
 			Password: getEnv("CREATOR_PASSWORD", "admin123"),
+		},
+		Agent: AgentConfig{
+			Token:        getEnv("AGENT_API_TOKEN", ""),
+			CreatorEmail: getEnv("AGENT_CREATOR_EMAIL", getEnv("CREATOR_EMAIL", "creator@zenbali.org")),
 		},
 	}
 

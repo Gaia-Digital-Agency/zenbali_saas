@@ -21,12 +21,17 @@
 ## Current Verified Server State
 
 - SSH access works
-- `/var/www/zenbali` exists and is empty
-- `/var/www/zenbali` is owned by `root:root`
-- `azlan` does not currently have write access there
+- `/var/www/zenbali` is populated with the deployed app
+- `azlan` has write access to `/var/www/zenbali`
 - PostgreSQL is active and listening on `127.0.0.1:5432`
+- Database `zenbali` exists
+- Role `zenbali` exists
 - Nginx is a shared multi-site setup
 - `gs://gda-s01-bucket/zenbali/` is accessible
+- the VM has active Google credentials through its attached service account
+- Zen Bali is installed as `zenbali.service`
+- Zen Bali is running on `127.0.0.1:8081`
+- Nginx is proxying the server IP to Zen Bali
 
 ## Current Upload Behavior
 
@@ -43,6 +48,17 @@ For this VM target, use:
 Important runtime requirement:
 - the VM must have Google Application Default Credentials with write access to `gs://gda-s01-bucket/zenbali/`
 - that can be either a service account attached to the VM, or `GOOGLE_APPLICATION_CREDENTIALS` pointing to a JSON key file
+
+## Current Deployment Notes
+
+- The VM does not have Go installed
+- The safe deployment flow is:
+  - build the Linux binary locally
+  - sync the repo to `/var/www/zenbali`
+  - copy the binary into `/var/www/zenbali/bin/`
+  - restart `zenbali.service`
+- Backend port `8080` was already occupied by another site on the VM
+- Zen Bali therefore uses backend port `8081`
 
 ## Recommended Deployment Sequence
 
@@ -90,7 +106,7 @@ Important runtime requirement:
 ## Suggested VM Runtime
 
 Use:
-- app port `8080`
+- app port `8081`
 - Nginx reverse proxy in front
 - `systemd` service for the Go binary
 
@@ -99,7 +115,7 @@ Exact service file:
 
 ## Suggested Nginx Shape
 
-Use a dedicated site file for Zen Bali and proxy to `127.0.0.1:8080`.
+Use a dedicated site file for Zen Bali and proxy to `127.0.0.1:8081`.
 
 Exact site file:
 - [zenbali.conf](/Users/rogerwoolie/Documents/gaiada_projects/zenbali_saas/reference/nginx/zenbali.conf)
@@ -133,7 +149,7 @@ PGPASSWORD=CHANGE_ME_DB_PASSWORD psql -h 127.0.0.1 -p 5432 -U zenbali -d zenbali
 - `/var/www/zenbali` writable by deploy user or deploy process
 - `.env` present
 - Google credentials present if the VM is not already using a Storage-capable service account
-- `bin/zenbali` built
+- `bin/zenbali-server` built
 - PostgreSQL database ready
 - Nginx site isolated from other sites
 - systemd service enabled
@@ -148,3 +164,11 @@ Behavior:
 - new image uploads are stored in the configured bucket prefix
 - replacing an event image deletes the previous object
 - deleting an event deletes its uploaded object
+
+## Current Live Gaps
+
+- public access is still IP-based, not domain-based
+- TLS is not configured yet
+- the VM still uses Stripe test keys
+- `STRIPE_WEBHOOK_SECRET` is currently blank on the VM
+- the sample seeded event image URL was cleared on the VM because the seed pointed to a missing local file

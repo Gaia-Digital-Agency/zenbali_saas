@@ -126,10 +126,10 @@ func (h *AdminHandler) ListEvents(w http.ResponseWriter, r *http.Request) {
 func (h *AdminHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		models.EventCreateRequest
-		CreatorID   string  `json:"creator_id"`
-		ImageURL    string  `json:"image_url"`
-		IsPaid      *bool   `json:"is_paid"`
-		IsPublished *bool   `json:"is_published"`
+		CreatorID   string `json:"creator_id"`
+		ImageURL    string `json:"image_url"`
+		IsPaid      *bool  `json:"is_paid"`
+		IsPublished *bool  `json:"is_published"`
 	}
 	if err := utils.ParseJSON(r, &req); err != nil {
 		utils.BadRequest(w, "Invalid request body")
@@ -146,6 +146,10 @@ func (h *AdminHandler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == services.ErrInvalidDate {
 			utils.BadRequest(w, "Invalid date format. Use YYYY-MM-DD")
+			return
+		}
+		if err.Error() == "price_thousands must be between 0 and 100000" {
+			utils.BadRequest(w, err.Error())
 			return
 		}
 		utils.InternalError(w, "Failed to create event")
@@ -195,6 +199,10 @@ func (h *AdminHandler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == services.ErrEventNotFound {
 			utils.NotFound(w, "Event not found")
+			return
+		}
+		if err.Error() == "price_thousands must be between 0 and 100000" {
+			utils.BadRequest(w, err.Error())
 			return
 		}
 		utils.InternalError(w, "Failed to update event")

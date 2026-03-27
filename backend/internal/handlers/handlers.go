@@ -12,6 +12,7 @@ type Handlers struct {
 	Public  *PublicHandler
 	Creator *CreatorHandler
 	Admin   *AdminHandler
+	Agent   *AgentHandler
 	Webhook *WebhookHandler
 	Visitor *VisitorHandler
 
@@ -32,6 +33,7 @@ func New(svcs *services.Services, repos *repository.Repositories, cfg *config.Co
 	h.Public = NewPublicHandler(svcs, repos)
 	h.Creator = NewCreatorHandler(svcs, repos, cfg)
 	h.Admin = NewAdminHandler(svcs, repos)
+	h.Agent = NewAgentHandler(svcs, repos, cfg)
 	h.Webhook = NewWebhookHandler(svcs)
 	h.Visitor = NewVisitorHandler(svcs)
 

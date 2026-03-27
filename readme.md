@@ -10,7 +10,7 @@
 
 ## Introduction
 
-Zen Bali is a SaaS events platform for Bali, Indonesia, accessible at **zenbali.org**. The platform enables content creators and service providers to post events happening across Bali, while visitors can freely browse, search, and filter upcoming events.
+Zen Bali is a SaaS events platform for Bali, Indonesia, accessible at **zenbali.site**. The platform enables content creators and service providers to post events happening across Bali, while visitors can freely browse, search, and filter upcoming events.
 
 **Business Model:**
 - Visitors browse events for free.
@@ -44,7 +44,7 @@ The application is designed for cloud-native deployment, primarily on Google Clo
                         ┌───────────────────┐
                         │    CLOUDFLARE     │
                         │  (DNS + CDN/SSL)  │
-                        │   zenbali.org     │
+                        │   zenbali.site    │
                         └─────────┬─────────┘
                                   │
                                   ▼

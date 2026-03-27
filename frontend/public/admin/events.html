@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Events</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
     <header class="header" style="background: var(--gray-900);">
         <div class="container">
             <div class="header-content">
-                <a href="/admin/dashboard.html" class="logo" style="color: var(--orange-400);"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <a href="dashboard.html" class="logo" style="color: var(--orange-400);"><span>🌴</span><span>Zen Bali Admin</span></a>
                 <nav class="nav">
-                    <a href="/admin/dashboard.html" class="nav-link" style="color: white;">Dashboard</a>
-                    <a href="/admin/events.html" class="nav-link active" style="color: white;">Events</a>
-                    <a href="/admin/creators.html" class="nav-link" style="color: white;">Creators</a>
-                    <a href="/admin/payments.html" class="nav-link" style="color: white;">Payments</a>
+                    <a href="dashboard.html" class="nav-link" style="color: white;">Dashboard</a>
+                    <a href="events.html" class="nav-link active" style="color: white;">Events</a>
+                    <a href="creators.html" class="nav-link" style="color: white;">Creators</a>
+                    <a href="payments.html" class="nav-link" style="color: white;">Payments</a>
                     <a href="#" class="nav-link" style="color: white;" onclick="adminLogout()">Logout</a>
                 </nav>
             </div>
@@ -84,8 +84,9 @@
                                     <select name="entrance_type_id" class="form-control" required id="entranceTypeSelect"></select>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Entrance Fee (USD)</label>
-                                    <input type="number" name="entrance_fee" class="form-control" min="0" step="0.01" value="0">
+                                    <label class="form-label">Price ('000)</label>
+                                    <input type="number" name="price_thousands" class="form-control" min="0" max="100000" step="1" value="0" inputmode="numeric" placeholder="150">
+                                    <span class="form-hint">Enter an integer from 0 to 100000. Example: 150 means IDR 150,000.</span>
                                 </div>
                             </div>
 
@@ -181,7 +182,7 @@
         </div>
     </main>
 
-    <script src="/js/main.js"></script>
+    <script src="../js/main.js"></script>
     <script>
         let events = [];
         let creators = [];
@@ -190,13 +191,13 @@
             localStorage.removeItem('zenbali_admin_token');
             localStorage.removeItem('zenbali_token');
             localStorage.removeItem('zenbali_user');
-            window.location.href = '/admin/login.html';
+            window.location.href = Utils.appUrl('/admin/login.html');
         }
 
         function requireAdmin() {
             const token = localStorage.getItem('zenbali_admin_token');
             if (!token) {
-                window.location.href = '/admin/login.html';
+                window.location.href = Utils.appUrl('/admin/login.html');
                 return false;
             }
             localStorage.setItem('zenbali_token', token);
@@ -241,7 +242,7 @@
             const form = document.getElementById('eventForm');
             form.reset();
             form.event_id.value = '';
-            form.entrance_fee.value = '0';
+            form.price_thousands.value = '0';
             document.getElementById('imageURLInput').value = '';
             document.getElementById('isPaidCheckbox').checked = false;
             document.getElementById('isPublishedCheckbox').checked = false;
@@ -291,7 +292,7 @@
             form.event_type_id.value = event.event_type_id || '';
             form.duration.value = event.duration || '';
             form.entrance_type_id.value = event.entrance_type_id || '';
-            form.entrance_fee.value = event.entrance_fee || 0;
+            form.price_thousands.value = Math.round((event.entrance_fee || 0) / 1000);
             form.participant_group_type.value = event.participant_group_type || '';
             form.lead_by.value = event.lead_by || '';
             form.contact_email.value = event.contact_email || '';
@@ -383,7 +384,7 @@
                                     <td>
                                         <div class="d-flex gap-1" style="flex-wrap: wrap;">
                                             <button class="btn btn-sm btn-secondary" onclick="editEvent('${event.id}')">Edit</button>
-                                            <a href="/event.html?id=${event.id}" class="btn btn-sm btn-outline" target="_blank">View</a>
+                                            <a href="${Utils.appUrl(`/event.html?id=${event.id}`)}" class="btn btn-sm btn-outline" target="_blank">View</a>
                                             <button class="btn btn-sm btn-danger" onclick="deleteEvent('${event.id}')">Delete</button>
                                         </div>
                                     </td>
@@ -415,6 +416,7 @@
                 const form = e.target;
                 const id = form.event_id.value;
                 const timeValue = form.event_time.value;
+                const priceThousands = parseInt(form.price_thousands.value || '0', 10) || 0;
                 const payload = {
                     creator_id: form.creator_id.value,
                     title: form.title.value.trim(),
@@ -424,7 +426,8 @@
                     event_type_id: parseInt(form.event_type_id.value, 10),
                     duration: form.duration.value.trim(),
                     entrance_type_id: parseInt(form.entrance_type_id.value, 10),
-                    entrance_fee: parseFloat(form.entrance_fee.value || '0'),
+                    price_thousands: priceThousands,
+                    entrance_fee: priceThousands * 1000,
                     participant_group_type: form.participant_group_type.value,
                     lead_by: form.lead_by.value.trim(),
                     contact_email: form.contact_email.value.trim(),

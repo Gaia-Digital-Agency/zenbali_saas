@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"crypto/subtle"
 	"net/http"
 	"strings"
 
@@ -204,6 +205,29 @@ func (h *AuthHandler) AdminAuthMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (h *AuthHandler) AgentAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		expected := strings.TrimSpace(h.config.Agent.Token)
+		if expected == "" {
+			utils.InternalError(w, "Agent API token is not configured")
+			return
+		}
+
+		provided := extractAgentToken(r)
+		if provided == "" {
+			utils.Unauthorized(w, "Missing agent token")
+			return
+		}
+
+		if subtle.ConstantTimeCompare([]byte(provided), []byte(expected)) != 1 {
+			utils.Unauthorized(w, "Invalid agent token")
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 // OptionalCreatorAuthMiddleware attempts to authenticate a creator if a token is present,
 // but does not reject the request if no token is provided
 func (h *AuthHandler) OptionalCreatorAuthMiddleware(next http.Handler) http.Handler {
@@ -256,6 +280,13 @@ func GetAdminFromContext(ctx context.Context) *models.Admin {
 		return admin
 	}
 	return nil
+}
+
+func extractAgentToken(r *http.Request) string {
+	if token := strings.TrimSpace(r.Header.Get("X-Agent-Token")); token != "" {
+		return token
+	}
+	return extractToken(r)
 }
 
 // Helper to get user ID from context

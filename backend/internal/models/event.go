@@ -19,6 +19,7 @@ type Event struct {
 	EntranceFee          float64   `json:"entrance_fee"`
 	ParticipantGroupType *string   `json:"participant_group_type,omitempty"`
 	LeadBy               *string   `json:"lead_by,omitempty"`
+	Venue                *string   `json:"venue,omitempty"`
 	ContactEmail         string    `json:"contact_email"`
 	ContactMobile        *string   `json:"contact_mobile,omitempty"`
 	Notes                *string   `json:"notes,omitempty"`
@@ -45,27 +46,31 @@ type EventCreateRequest struct {
 	Duration             string  `json:"duration" validate:"required,max=100"`
 	EntranceTypeID       int     `json:"entrance_type_id" validate:"required,min=1"`
 	EntranceFee          float64 `json:"entrance_fee" validate:"min=0"`
+	PriceThousands       *int    `json:"price_thousands,omitempty" validate:"omitempty,min=0,max=100000"`
 	ParticipantGroupType string  `json:"participant_group_type" validate:"required,max=50"`
 	LeadBy               string  `json:"lead_by" validate:"required,max=255"`
+	Venue                string  `json:"venue" validate:"max=50"`
 	ContactEmail         string  `json:"contact_email" validate:"required,email"`
 	ContactMobile        string  `json:"contact_mobile" validate:"required,max=50"`
 	Notes                string  `json:"notes" validate:"required,max=2000"`
 }
 
 type EventUpdateRequest struct {
-	Title                string  `json:"title" validate:"min=3,max=255"`
-	EventDate            string  `json:"event_date"`
-	EventTime            string  `json:"event_time"`
-	LocationID           int     `json:"location_id" validate:"min=1"`
-	EventTypeID          int     `json:"event_type_id" validate:"min=1"`
-	Duration             string  `json:"duration" validate:"max=100"`
-	EntranceTypeID       int     `json:"entrance_type_id" validate:"min=1"`
-	EntranceFee          float64 `json:"entrance_fee" validate:"min=0"`
-	ParticipantGroupType string  `json:"participant_group_type" validate:"max=50"`
-	LeadBy               string  `json:"lead_by" validate:"max=255"`
-	ContactEmail         string  `json:"contact_email" validate:"email"`
-	ContactMobile        string  `json:"contact_mobile" validate:"max=50"`
-	Notes                string  `json:"notes" validate:"max=2000"`
+	Title                string   `json:"title" validate:"min=3,max=255"`
+	EventDate            string   `json:"event_date"`
+	EventTime            string   `json:"event_time"`
+	LocationID           int      `json:"location_id" validate:"min=1"`
+	EventTypeID          int      `json:"event_type_id" validate:"min=1"`
+	Duration             string   `json:"duration" validate:"max=100"`
+	EntranceTypeID       int      `json:"entrance_type_id" validate:"min=1"`
+	EntranceFee          *float64 `json:"entrance_fee,omitempty" validate:"omitempty,min=0"`
+	PriceThousands       *int     `json:"price_thousands,omitempty" validate:"omitempty,min=0,max=100000"`
+	ParticipantGroupType string   `json:"participant_group_type" validate:"max=50"`
+	LeadBy               string   `json:"lead_by" validate:"max=255"`
+	Venue                string   `json:"venue" validate:"max=50"`
+	ContactEmail         string   `json:"contact_email" validate:"email"`
+	ContactMobile        string   `json:"contact_mobile" validate:"max=50"`
+	Notes                string   `json:"notes" validate:"max=2000"`
 }
 
 type EventListFilter struct {
@@ -104,8 +109,10 @@ type EventResponse struct {
 	EntranceType         string    `json:"entrance_type"`
 	EntranceTypeID       int       `json:"entrance_type_id"`
 	EntranceFee          float64   `json:"entrance_fee"`
+	PriceThousands       int       `json:"price_thousands"`
 	ParticipantGroupType string    `json:"participant_group_type,omitempty"`
 	LeadBy               string    `json:"lead_by,omitempty"`
+	Venue                string    `json:"venue,omitempty"`
 	ContactEmail         string    `json:"contact_email"`
 	ContactMobile        string    `json:"contact_mobile"`
 	Notes                string    `json:"notes"`
@@ -138,6 +145,11 @@ func (e *Event) ToResponse() *EventResponse {
 		leadBy = *e.LeadBy
 	}
 
+	venue := ""
+	if e.Venue != nil {
+		venue = *e.Venue
+	}
+
 	contactMobile := ""
 	if e.ContactMobile != nil {
 		contactMobile = *e.ContactMobile
@@ -167,8 +179,10 @@ func (e *Event) ToResponse() *EventResponse {
 		EntranceType:         e.EntranceTypeName,
 		EntranceTypeID:       e.EntranceTypeID,
 		EntranceFee:          e.EntranceFee,
+		PriceThousands:       int(e.EntranceFee / 1000),
 		ParticipantGroupType: participantGroupType,
 		LeadBy:               leadBy,
+		Venue:                venue,
 		ContactEmail:         e.ContactEmail,
 		ContactMobile:        contactMobile,
 		Notes:                notes,

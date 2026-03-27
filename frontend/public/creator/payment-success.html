@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Status - Zen Bali</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
             </div>
         </div>
     </header>
@@ -23,8 +23,8 @@
                     <p id="statusMessage" class="text-muted mt-2 mb-4">We are confirming your Stripe payment and publication status.</p>
                     <div id="statusAlert"></div>
                     <div class="d-flex gap-2" style="justify-content: center; flex-wrap: wrap;">
-                        <a href="/creator/events.html" class="btn btn-primary">View My Events</a>
-                        <a href="/" class="btn btn-secondary">Browse Events</a>
+                        <a href="events.html" class="btn btn-primary">View My Events</a>
+                        <a href="../" class="btn btn-secondary">Browse Events</a>
                     </div>
                 </div>
             </div>
@@ -36,8 +36,8 @@
         </div></div>
     </footer>
 
-    <script src="/js/main.js"></script>
-    <script src="/js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             requireAuth();

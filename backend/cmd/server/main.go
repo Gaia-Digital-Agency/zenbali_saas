@@ -165,6 +165,14 @@ func main() {
 			r.Put("/admin/settings/event-types/{id}", h.Admin.UpdateEventType)
 		})
 
+		// Agent protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(h.Auth.AgentAuthMiddleware)
+
+			r.Post("/agent/uploads/event-image", h.Agent.UploadEventImage)
+			r.Post("/agent/events", h.Agent.CreateEvent)
+		})
+
 		// Stripe webhook
 		r.Post("/webhooks/stripe", h.Webhook.HandleStripe)
 	})

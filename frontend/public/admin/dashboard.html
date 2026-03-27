@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Zen Bali</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
     <header class="header" style="background: var(--gray-900);">
         <div class="container">
             <div class="header-content">
-                <a href="/admin/dashboard.html" class="logo" style="color: var(--orange-400);"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <a href="dashboard.html" class="logo" style="color: var(--orange-400);"><span>🌴</span><span>Zen Bali Admin</span></a>
                 <nav class="nav">
-                    <a href="/admin/dashboard.html" class="nav-link active" style="color: white;">Dashboard</a>
-                    <a href="/admin/events.html" class="nav-link" style="color: white;">Events</a>
-                    <a href="/admin/creators.html" class="nav-link" style="color: white;">Creators</a>
-                    <a href="/admin/payments.html" class="nav-link" style="color: white;">Payments</a>
+                    <a href="dashboard.html" class="nav-link active" style="color: white;">Dashboard</a>
+                    <a href="events.html" class="nav-link" style="color: white;">Events</a>
+                    <a href="creators.html" class="nav-link" style="color: white;">Creators</a>
+                    <a href="payments.html" class="nav-link" style="color: white;">Payments</a>
                     <a href="#" class="nav-link" style="color: white;" onclick="adminLogout()">Logout</a>
                 </nav>
             </div>
@@ -66,18 +66,18 @@
         </div>
     </main>
 
-    <script src="/js/main.js"></script>
+    <script src="../js/main.js"></script>
     <script>
         function adminLogout() {
             localStorage.removeItem('zenbali_admin_token');
             localStorage.removeItem('zenbali_token');
             localStorage.removeItem('zenbali_user');
-            window.location.href = '/admin/login.html';
+            window.location.href = Utils.appUrl('/admin/login.html');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!localStorage.getItem('zenbali_admin_token')) {
-                window.location.href = '/admin/login.html';
+                window.location.href = Utils.appUrl('/admin/login.html');
                 return;
             }
             loadDashboard();

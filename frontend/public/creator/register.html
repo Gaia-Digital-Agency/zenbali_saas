@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Zen Bali</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/" class="logo">
+                <a href="../" class="logo">
                     <span>🌴</span>
                     <span>Zen Bali</span>
                 </a>
                 <nav class="nav">
-                    <a href="/" class="nav-link">Events</a>
+                    <a href="../" class="nav-link">Events</a>
                 </nav>
             </div>
         </div>
@@ -96,7 +96,7 @@
                     
                     <p class="text-center mt-3">
                         Already have an account? 
-                        <a href="/creator/login.html">Login here</a>
+                        <a href="login.html">Login here</a>
                     </p>
                 </div>
             </div>
@@ -124,8 +124,8 @@
         </div>
     </footer>
 
-    <script src="/js/main.js"></script>
-    <script src="/js/auth.js"></script>
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -137,7 +137,7 @@
             }
 
             if (Auth.isLoggedIn()) {
-                window.location.href = '/creator/dashboard.html';
+                window.location.href = Utils.appUrl('/creator/dashboard.html');
                 return;
             }
 
@@ -198,7 +198,7 @@
                             </div>
                         `;
                         setTimeout(() => {
-                            window.location.href = '/creator/login.html';
+                            window.location.href = Utils.appUrl('/creator/login.html');
                         }, 2000);
                     }
                 } catch (error) {

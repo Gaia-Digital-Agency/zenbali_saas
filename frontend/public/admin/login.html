@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Zen Bali</title>
-    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
             </div>
         </div>
     </header>
@@ -38,7 +38,7 @@
             </div>
         </div>
     </main>
-    <script src="/js/main.js"></script>
+    <script src="../js/main.js"></script>
     <script>
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -52,7 +52,7 @@
                     localStorage.setItem('zenbali_admin_token', response.data.token);
                     localStorage.setItem('zenbali_token', response.data.token);
                     localStorage.setItem('zenbali_user', JSON.stringify({...response.data.admin, user_type: 'admin'}));
-                    window.location.href = '/admin/dashboard.html';
+                    window.location.href = Utils.appUrl('/admin/dashboard.html');
                 }
             } catch (error) {
                 document.getElementById('alertContainer').innerHTML = `<div class="alert alert-error">${error.message}</div>`;

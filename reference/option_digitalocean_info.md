@@ -451,7 +451,7 @@ make migrate-up
 
 1. Go to app → **Settings** → **Domains**
 2. Click **"Add Domain"**
-3. Enter: `zenbali.org`
+3. Enter: `zenbali.site`
 4. Follow DNS configuration instructions:
 
 ```bash
@@ -465,14 +465,14 @@ Value: <your-app>.ondigitalocean.app
 
 **Via CLI**:
 ```bash
-doctl apps create-domain <app-id> --domain zenbali.org
+doctl apps create-domain <app-id> --domain zenbali.site
 ```
 
 #### Step 7: Configure Stripe Webhook
 
 1. Go to Stripe Dashboard → **Webhooks**
 2. Click **"Add endpoint"**
-3. URL: `https://zenbali.org/api/webhooks/stripe`
+3. URL: `https://zenbali.site/api/webhooks/stripe`
 4. Events: `checkout.session.completed`, `checkout.session.expired`
 5. Copy webhook signing secret
 6. Update in DO environment variables:
@@ -484,13 +484,13 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxx
 
 ```bash
 # Health check
-curl https://zenbali.org/api/health
+curl https://zenbali.site/api/health
 
 # Expected response
 {"success":true,"data":{"service":"zenbali","status":"healthy"}}
 
 # Test frontend
-open https://zenbali.org
+open https://zenbali.site
 ```
 
 ### Post-Deployment
@@ -571,7 +571,7 @@ vim .env
 # Update for production:
 ENV=production
 PORT=8080
-BASE_URL=https://zenbali.org
+BASE_URL=https://zenbali.site
 
 # Database (use managed or local)
 DB_HOST=localhost  # or managed DB host
@@ -612,7 +612,7 @@ Add configuration:
 ```nginx
 server {
     listen 80;
-    server_name zenbali.org www.zenbali.org;
+    server_name zenbali.site;
 
     location / {
         proxy_pass http://localhost:8080;
@@ -642,7 +642,7 @@ systemctl restart nginx
 apt install certbot python3-certbot-nginx -y
 
 # Get certificate
-certbot --nginx -d zenbali.org -d www.zenbali.org
+certbot --nginx -d zenbali.site
 
 # Auto-renewal (already configured)
 systemctl status certbot.timer
@@ -962,12 +962,12 @@ doctl compute domain list
 
 ### Add Domain
 ```bash
-doctl compute domain create zenbali.org
+doctl compute domain create zenbali.site
 ```
 
 ### Add DNS Record
 ```bash
-doctl compute domain records create zenbali.org \
+doctl compute domain records create zenbali.site \
   --record-type A \
   --record-name @ \
   --record-data <droplet-ip>
@@ -975,7 +975,7 @@ doctl compute domain records create zenbali.org \
 
 ### Add CNAME
 ```bash
-doctl compute domain records create zenbali.org \
+doctl compute domain records create zenbali.site \
   --record-type CNAME \
   --record-name www \
   --record-data @

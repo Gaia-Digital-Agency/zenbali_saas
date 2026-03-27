@@ -31,7 +31,7 @@
             <div class="card">
                 <div class="card-header">
                     <h1 class="card-title">Post New Event</h1>
-                    <p class="text-muted mt-1">Create your event listing - $1 USD to publish</p>
+                    <p class="text-muted mt-1">Create your event listing - USD 3 to publish</p>
                 </div>
                 <div class="card-body">
                     <div id="alertContainer"></div>
@@ -82,7 +82,7 @@
                                 <div>
                                     <label class="form-label" style="font-size: 0.875rem;">Hours</label>
                                     <select name="duration_hours" class="form-control" id="durationHours" required>
-                                        <option value="1">1</option>
+                                        <option value="0">00</option>
                                     </select>
                                 </div>
                                 <div>
@@ -211,9 +211,9 @@
         }
 
         function populateDurationDropdowns() {
-            // Days: 0 only (default)
+            // Days: 0-90
             const daysSelect = document.getElementById('durationDays');
-            for (let i = 0; i <= 0; i++) {
+            for (let i = 0; i <= 90; i++) {
                 const option = document.createElement('option');
                 option.value = i;
                 option.textContent = String(i).padStart(2, '0');
@@ -221,13 +221,13 @@
                 daysSelect.appendChild(option);
             }
 
-            // Hours: 1-23
+            // Hours: 0-23
             const hoursSelect = document.getElementById('durationHours');
-            for (let i = 1; i <= 23; i++) {
+            for (let i = 0; i <= 23; i++) {
                 const option = document.createElement('option');
                 option.value = i;
-                option.textContent = i;
-                if (i === 1) option.selected = true;
+                option.textContent = String(i).padStart(2, '0');
+                if (i === 0) option.selected = true;
                 hoursSelect.appendChild(option);
             }
         }

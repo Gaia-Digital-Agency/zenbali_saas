@@ -17,6 +17,7 @@
                 <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
                 <nav class="nav">
                     <a href="dashboard.html" class="nav-link active">Dashboard</a>
+                    <a href="recent-events.html" class="nav-link">Recent Events</a>
                     <a href="events.html" class="nav-link">My Events</a>
                     <a href="new-event.html" class="nav-link">Post Event</a>
                     <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
@@ -54,15 +55,6 @@
                 </div></div>
             </div>
 
-            <div class="card">
-                <div class="card-header d-flex justify-between align-center">
-                    <h2 class="card-title">Recent Events</h2>
-                    <a href="events.html" class="btn btn-secondary btn-sm">View All</a>
-                </div>
-                <div class="card-body">
-                    <div id="recentEvents"><div class="loading"><div class="spinner"></div></div></div>
-                </div>
-            </div>
         </div>
     </main>
 
@@ -90,7 +82,6 @@
                     document.getElementById('totalEvents').textContent = events.length;
                     document.getElementById('publishedEvents').textContent = events.filter(e => e.is_published).length;
                     document.getElementById('pendingEvents').textContent = events.filter(e => !e.is_paid).length;
-                    renderRecentEvents(events.slice(0, 5));
                 }
                 const paymentsResponse = await API.get('/creator/payments?limit=100');
                 if (paymentsResponse.success) {
@@ -99,15 +90,6 @@
                     document.getElementById('totalPaid').textContent = '$' + totalPaid.toFixed(0);
                 }
             } catch (error) { console.error('Failed to load dashboard:', error); }
-        }
-
-        function renderRecentEvents(events) {
-            const container = document.getElementById('recentEvents');
-            if (!events || events.length === 0) {
-                container.innerHTML = `<div class="empty-state"><p class="text-muted">No events yet</p><a href="${Utils.appUrl('/creator/new-event.html')}" class="btn btn-primary">Create Your First Event</a></div>`;
-                return;
-            }
-            container.innerHTML = `<div class="table-container"><table class="table"><thead><tr><th>Event</th><th>Date</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead><tbody>${events.map(event => `<tr><td><strong>${Utils.escapeHtml(event.title)}</strong></td><td>${Utils.formatDate(event.event_date)}</td><td>${Utils.escapeHtml(event.location)}</td><td>${event.is_published ? '<span class="badge badge-success">Published</span>' : event.is_paid ? '<span class="badge badge-warning">Paid</span>' : '<span class="badge badge-gray">Unpaid</span>'}</td><td><a href="${Utils.appUrl(`/creator/edit-event.html?id=${event.id}`)}" class="btn btn-sm btn-secondary">Edit</a>${!event.is_paid ? ` <button onclick="payForEvent('${event.id}')" class="btn btn-sm btn-primary">Pay $1</button>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
         }
 
         async function payForEvent(eventId) {

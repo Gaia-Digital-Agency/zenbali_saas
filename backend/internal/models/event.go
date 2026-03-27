@@ -77,6 +77,7 @@ type EventListFilter struct {
 	LocationID     int       `json:"location_id"`
 	EventTypeID    int       `json:"event_type_id"`
 	EntranceTypeID int       `json:"entrance_type_id"`
+	MinEventDate   time.Time `json:"min_event_date"`
 	DateFrom       time.Time `json:"date_from"`
 	DateTo         time.Time `json:"date_to"`
 	Search         string    `json:"search"`

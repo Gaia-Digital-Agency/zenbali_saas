@@ -247,8 +247,10 @@ func (s *EventService) UpdateImageURL(ctx context.Context, id, creatorID uuid.UU
 }
 
 func (s *EventService) ListPublic(ctx context.Context, filter models.EventListFilter) (*models.EventListResponse, error) {
+	today := time.Now().Truncate(24 * time.Hour)
 	filter.OnlyPublished = true
 	filter.IncludePast = false
+	filter.MinEventDate = today
 
 	events, total, err := s.repos.Event.List(ctx, filter)
 	if err != nil {
@@ -274,11 +276,13 @@ func (s *EventService) ListPublic(ctx context.Context, filter models.EventListFi
 }
 
 func (s *EventService) ListByCreator(ctx context.Context, creatorID uuid.UUID, page, limit int, includePast bool) (*models.EventListResponse, error) {
+	today := time.Now().Truncate(24 * time.Hour)
 	filter := models.EventListFilter{
-		CreatorID:   creatorID,
-		IncludePast: includePast,
-		Page:        page,
-		Limit:       limit,
+		CreatorID:    creatorID,
+		IncludePast:  includePast,
+		MinEventDate: today.AddDate(0, 0, -30),
+		Page:         page,
+		Limit:        limit,
 	}
 
 	events, total, err := s.repos.Event.List(ctx, filter)
@@ -302,6 +306,7 @@ func (s *EventService) ListByCreator(ctx context.Context, creatorID uuid.UUID, p
 
 func (s *EventService) ListAll(ctx context.Context, filter models.EventListFilter) (*models.EventListResponse, error) {
 	filter.IncludePast = true
+	filter.MinEventDate = time.Now().Truncate(24*time.Hour).AddDate(0, 0, -60)
 
 	events, total, err := s.repos.Event.List(ctx, filter)
 	if err != nil {

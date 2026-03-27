@@ -167,6 +167,12 @@ func (r *EventRepository) List(ctx context.Context, filter models.EventListFilte
 		argNum++
 	}
 
+	if !filter.MinEventDate.IsZero() {
+		conditions = append(conditions, fmt.Sprintf("e.event_date >= $%d", argNum))
+		args = append(args, filter.MinEventDate.Format("2006-01-02"))
+		argNum++
+	}
+
 	if filter.LocationID > 0 {
 		conditions = append(conditions, fmt.Sprintf("e.location_id = $%d", argNum))
 		args = append(args, filter.LocationID)

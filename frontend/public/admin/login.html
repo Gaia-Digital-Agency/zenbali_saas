@@ -11,17 +11,24 @@
     <link rel="shortcut icon" href="../favicon.ico?v=20260327b">
 </head>
 <body>
-    <header class="header">
+    <header class="header" style="background: var(--gray-900); border-bottom: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);">
         <div class="container">
             <div class="header-content">
-                <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <a href="dashboard.html" class="logo" style="color: #fde68a;"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <nav class="nav">
+                    <a href="../" class="nav-link" style="color: rgba(255, 255, 255, 0.82); background: rgba(255, 255, 255, 0.08); border-radius: 999px; padding: 0.5rem 0.9rem; font-weight: 500;">Back to Site</a>
+                </nav>
             </div>
         </div>
     </header>
-    <main style="padding: 3rem 0;">
+    <main style="padding: 3rem 0; background: linear-gradient(180deg, rgba(17, 24, 39, 0.06), transparent 220px); min-height: calc(100vh - 80px);">
         <div class="container" style="max-width: 400px;">
-            <div class="card">
-                <div class="card-header text-center"><h1 class="card-title">Admin Login</h1></div>
+            <div class="card" style="border-top: 4px solid var(--orange-500);">
+                <div class="card-header text-center">
+                    <div style="font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-secondary); margin-bottom: 0.5rem;">Restricted Access</div>
+                    <h1 class="card-title">Admin Login</h1>
+                    <p class="text-muted mt-1">Use admin credentials only</p>
+                </div>
                 <div class="card-body">
                     <div id="alertContainer"></div>
                     <form id="loginForm">

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Creator Form</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico?v=20260327b">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png?v=20260327b">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=20260327b">
+    <link rel="shortcut icon" href="../favicon.ico?v=20260327b">
+</head>
+<body>
+    <header class="header" style="background: var(--gray-900); border-bottom: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);">
+        <div class="container">
+            <div class="header-content">
+                <a href="dashboard.html" class="logo" style="color: #fde68a;"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <nav class="nav">
+                    <a href="dashboard.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Dashboard</a>
+                    <a href="events.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">All Events</a>
+                    <a href="creators.html" class="nav-link active" style="color: #fff; background: rgba(245, 158, 11, 0.22); border-radius: 999px; padding: 0.5rem 0.9rem; font-weight: 600;">Creators</a>
+                    <a href="payments.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Payments</a>
+                    <a href="#" class="nav-link" style="color: rgba(255, 255, 255, 0.82);" onclick="adminLogout()">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 3rem 0;">
+        <div class="container" style="max-width: 500px;">
+            <div class="d-flex justify-between align-center mb-3" style="gap: 1rem; flex-wrap: wrap;">
+                <div>
+                    <h1 id="pageTitle">Create Creator</h1>
+                    <p class="text-muted mt-1" id="pageSubtitle">Use the same creator registration structure from the public app.</p>
+                </div>
+                <a href="creators.html" class="btn btn-secondary">Back to Creators</a>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="card">
+                <div class="card-header text-center">
+                    <h2 class="card-title" id="creatorFormTitle">Create Creator</h2>
+                    <p class="text-muted mt-1" id="creatorFormSubtitle">Use the same creator registration structure from the public app</p>
+                </div>
+                <div class="card-body">
+                    <form id="creatorForm">
+                        <input type="hidden" name="creator_id">
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">First Name <span class="required">*</span></label>
+                                <input type="text" name="first_name" class="form-control" required minlength="2" maxlength="100" autocomplete="given-name" placeholder="Your first name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name <span class="required">*</span></label>
+                                <input type="text" name="last_name" class="form-control" required minlength="2" maxlength="100" autocomplete="family-name" placeholder="Your last name">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Organization Name</label>
+                            <input type="text" name="organization_name" class="form-control" placeholder="Your Business Name or Type Personal">
+                            <span class="form-hint">Optional - Leave blank for personal account</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email <span class="required">*</span></label>
+                            <input type="email" name="email" class="form-control" required autocomplete="email" placeholder="your@email.com">
+                            <span class="form-hint">Use a valid email address like `name@example.com`.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Whatsapp and Mobile Number</label>
+                            <input type="tel" name="mobile" class="form-control" inputmode="tel" autocomplete="tel" placeholder="+62 812 3456 7890">
+                            <span class="form-hint">Include country code. Numbers, spaces, `+`, `(`, `)`, and `-` are allowed.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password <span class="required" id="passwordRequired">*</span></label>
+                            <div class="password-field">
+                                <input type="password" name="password" class="form-control" required minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters">
+                                <button type="button" class="password-toggle" data-password-toggle="password" aria-pressed="false">Show</button>
+                            </div>
+                            <span class="form-hint">Must include uppercase, lowercase, number, and special character.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Confirm Password <span class="required" id="confirmPasswordRequired">*</span></label>
+                            <div class="password-field">
+                                <input type="password" name="confirm_password" class="form-control" required autocomplete="new-password" placeholder="Confirm your password">
+                                <button type="button" class="password-toggle" data-password-toggle="confirm_password" aria-pressed="false">Show</button>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <input type="checkbox" name="is_active" checked>
+                                    Active
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <input type="checkbox" name="is_verified">
+                                    Verified
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2" style="flex-wrap: wrap;">
+                            <button type="submit" class="btn btn-primary btn-block btn-lg" id="creatorSaveBtn">Create Creator</button>
+                            <button type="button" class="btn btn-secondary btn-lg" onclick="resetCreatorForm()">Reset</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/main.js"></script>
+    <script>
+        const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const PHONE_REGEX = /^[+]?[0-9()\-\s]{8,20}$/;
+        const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+        function adminLogout() {
+            localStorage.removeItem('zenbali_admin_token');
+            localStorage.removeItem('zenbali_token');
+            localStorage.removeItem('zenbali_user');
+            window.location.href = Utils.appUrl('/admin/login.html');
+        }
+
+        function requireAdmin() {
+            const token = localStorage.getItem('zenbali_admin_token');
+            if (!token) {
+                window.location.href = Utils.appUrl('/admin/login.html');
+                return false;
+            }
+            localStorage.setItem('zenbali_token', token);
+            return true;
+        }
+
+        function showAlert(message, type = 'success') {
+            document.getElementById('alertContainer').innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        function splitName(name) {
+            const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+            if (!parts.length) return { firstName: '', lastName: '' };
+            if (parts.length === 1) return { firstName: parts[0], lastName: '' };
+            return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+        }
+
+        function setEditMode(creator) {
+            const form = document.getElementById('creatorForm');
+            const { firstName, lastName } = splitName(creator.name);
+            form.creator_id.value = creator.id;
+            form.first_name.value = firstName;
+            form.last_name.value = lastName;
+            form.email.value = creator.email || '';
+            form.organization_name.value = creator.organization_name || '';
+            form.mobile.value = creator.mobile || '';
+            form.password.value = '';
+            form.confirm_password.value = '';
+            form.password.required = false;
+            form.confirm_password.required = false;
+            form.password.placeholder = 'Leave blank to keep current password';
+            form.confirm_password.placeholder = 'Leave blank to keep current password';
+            form.is_active.checked = !!creator.is_active;
+            form.is_verified.checked = !!creator.is_verified;
+            document.getElementById('passwordRequired').style.visibility = 'hidden';
+            document.getElementById('confirmPasswordRequired').style.visibility = 'hidden';
+            document.getElementById('pageTitle').textContent = 'Edit Creator';
+            document.getElementById('pageSubtitle').textContent = 'Update creator account details without mixing them into the creator list.';
+            document.getElementById('creatorFormTitle').textContent = 'Edit Creator';
+            document.getElementById('creatorFormSubtitle').textContent = 'Same layout and validation as creator registration, with admin controls';
+            document.getElementById('creatorSaveBtn').textContent = 'Update Creator';
+        }
+
+        function resetCreatorForm() {
+            const form = document.getElementById('creatorForm');
+            form.reset();
+            form.creator_id.value = '';
+            form.is_active.checked = true;
+            form.is_verified.checked = false;
+            form.password.required = true;
+            form.confirm_password.required = true;
+            form.password.placeholder = 'Minimum 8 characters';
+            form.confirm_password.placeholder = 'Confirm your password';
+            document.getElementById('passwordRequired').style.visibility = 'visible';
+            document.getElementById('confirmPasswordRequired').style.visibility = 'visible';
+            document.getElementById('pageTitle').textContent = 'Create Creator';
+            document.getElementById('pageSubtitle').textContent = 'Use the same creator registration structure from the public app.';
+            document.getElementById('creatorFormTitle').textContent = 'Create Creator';
+            document.getElementById('creatorFormSubtitle').textContent = 'Use the same creator registration structure from the public app';
+            document.getElementById('creatorSaveBtn').textContent = 'Create Creator';
+            form.querySelectorAll('[data-password-toggle]').forEach(button => {
+                button.textContent = 'Show';
+                button.setAttribute('aria-pressed', 'false');
+            });
+        }
+
+        async function loadCreatorForEdit(id) {
+            try {
+                const response = await API.get('/admin/creators?limit=100');
+                const creators = response.success ? (response.data.creators || []) : [];
+                const creator = creators.find(item => item.id === id);
+                if (!creator) {
+                    showAlert('Creator not found.', 'error');
+                    return;
+                }
+                setEditMode(creator);
+            } catch (error) {
+                showAlert('Failed to load creator details.', 'error');
+            }
+        }
+
+        function throwAlert(message) {
+            showAlert(message, 'error');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!requireAdmin()) return;
+            resetCreatorForm();
+
+            const creatorId = Utils.getQueryParam('id');
+            if (creatorId) {
+                loadCreatorForEdit(creatorId);
+            }
+
+            document.getElementById('creatorForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const id = form.creator_id.value;
+                const firstName = form.first_name.value.trim();
+                const lastName = form.last_name.value.trim();
+                const email = form.email.value.trim();
+                const mobile = form.mobile.value.trim();
+                const password = form.password.value;
+                const confirmPassword = form.confirm_password.value;
+
+                if (!firstName || !lastName) {
+                    throwAlert('First name and last name are required.');
+                    return;
+                }
+                if (!EMAIL_REGEX.test(email)) {
+                    throwAlert('Please enter a valid email address.');
+                    return;
+                }
+                if (mobile && !PHONE_REGEX.test(mobile)) {
+                    throwAlert('Please enter a valid Whatsapp and mobile number.');
+                    return;
+                }
+                if (password) {
+                    if (!PASSWORD_REGEX.test(password)) {
+                        throwAlert('Password must be at least 8 characters and include uppercase, lowercase, number, and special character.');
+                        return;
+                    }
+                    if (password !== confirmPassword) {
+                        throwAlert('Passwords do not match.');
+                        return;
+                    }
+                } else if (!id) {
+                    throwAlert('Password is required for a new creator.');
+                    return;
+                }
+
+                const payload = {
+                    name: `${firstName} ${lastName}`.trim(),
+                    email,
+                    organization_name: form.organization_name.value.trim(),
+                    mobile,
+                    is_active: form.is_active.checked,
+                    is_verified: form.is_verified.checked
+                };
+
+                if (password) {
+                    payload.password = password;
+                }
+
+                const btn = document.getElementById('creatorSaveBtn');
+                btn.disabled = true;
+
+                try {
+                    if (id) {
+                        await API.put(`/admin/creators/${id}`, payload);
+                        window.location.href = Utils.appUrl('/admin/creators.html');
+                    } else {
+                        await API.post('/admin/creators', payload);
+                        showAlert('Creator created successfully.');
+                        resetCreatorForm();
+                    }
+                } catch (error) {
+                    showAlert(error.message || 'Failed to save creator.', 'error');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

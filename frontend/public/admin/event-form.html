@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Event Form</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico?v=20260327b">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png?v=20260327b">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=20260327b">
+    <link rel="shortcut icon" href="../favicon.ico?v=20260327b">
+</head>
+<body>
+    <header class="header" style="background: var(--gray-900); border-bottom: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);">
+        <div class="container">
+            <div class="header-content">
+                <a href="dashboard.html" class="logo" style="color: #fde68a;"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <nav class="nav">
+                    <a href="dashboard.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Dashboard</a>
+                    <a href="events.html" class="nav-link active" style="color: #fff; background: rgba(245, 158, 11, 0.22); border-radius: 999px; padding: 0.5rem 0.9rem; font-weight: 600;">All Events</a>
+                    <a href="creators.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Creators</a>
+                    <a href="payments.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Payments</a>
+                    <a href="#" class="nav-link" style="color: rgba(255, 255, 255, 0.82);" onclick="adminLogout()">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container" style="max-width: 800px;">
+            <div class="d-flex justify-between align-center mb-3" style="gap: 1rem; flex-wrap: wrap;">
+                <div>
+                    <h1 id="pageTitle">Create Event</h1>
+                    <p class="text-muted mt-1" id="pageSubtitle">Use a dedicated admin form instead of mixing event creation into the directory page.</p>
+                </div>
+                <a href="events.html" class="btn btn-secondary">Back to Event Directory</a>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title" id="eventFormTitle">Create Event</h2>
+                        <p class="text-muted mt-1" id="eventFormSubtitle">Same field grouping and layout as creator edit event</p>
+                    </div>
+                    <div class="card-body">
+                        <form id="eventForm">
+                            <input type="hidden" name="event_id">
+
+                            <div class="form-group">
+                                <label class="form-label">Creator <span class="required">*</span></label>
+                                <select name="creator_id" class="form-control" required id="creatorSelect"></select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Event Title <span class="required">*</span></label>
+                                <input type="text" name="title" class="form-control" required placeholder="e.g., Full Moon Yoga Retreat">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Event Date <span class="required">*</span></label>
+                                    <input type="date" name="event_date" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Event Time</label>
+                                    <input type="time" name="event_time" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Location <span class="required">*</span></label>
+                                <select name="location_id" class="form-control" required id="locationSelect"></select>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Event Type <span class="required">*</span></label>
+                                    <select name="event_type_id" class="form-control" required id="eventTypeSelect"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Duration</label>
+                                    <input type="text" name="duration" class="form-control" placeholder="e.g. 2 hours">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Entrance Type <span class="required">*</span></label>
+                                    <select name="entrance_type_id" class="form-control" required id="entranceTypeSelect"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Price ('000)</label>
+                                    <input type="number" name="price_thousands" class="form-control" min="0" max="100000" step="1" value="0" inputmode="numeric" placeholder="150">
+                                    <span class="form-hint">Enter an integer from 0 to 100000. Example: 150 means IDR 150,000.</span>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Participant Group Type <span class="required">*</span></label>
+                                    <select name="participant_group_type" class="form-control" required>
+                                        <option value="">Select group type...</option>
+                                        <option value="Couples">Couples</option>
+                                        <option value="Females Only">Females Only</option>
+                                        <option value="Males Only">Males Only</option>
+                                        <option value="Open">Open</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Lead By <span class="required">*</span></label>
+                                    <input type="text" name="lead_by" class="form-control" placeholder="e.g., John Smith, Certified Instructor" required>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Contact Email <span class="required">*</span></label>
+                                    <input type="email" name="contact_email" class="form-control" required placeholder="contact@example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Contact Mobile</label>
+                                    <input type="tel" name="contact_mobile" class="form-control" placeholder="+62 812 345 6789">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Event Description</label>
+                                <textarea name="notes" class="form-control" rows="4" placeholder="Describe your event, what to expect, what to bring..."></textarea>
+                            </div>
+
+                            <div class="d-flex gap-2" style="flex-wrap: wrap;">
+                                <button type="submit" class="btn btn-primary" id="eventSaveBtn">Create Event</button>
+                                <button type="button" class="btn btn-secondary" onclick="resetEventForm()">Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h3 class="card-title">Event Image</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="imagePreview" style="width: 100%; height: 150px; background: var(--gray-100); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem; overflow: hidden;">
+                                <span class="text-muted">No image</span>
+                            </div>
+                            <input type="text" id="imageURLInput" name="image_url" class="form-control mb-2" placeholder="/uploads/example.png or https://...">
+                            <p class="form-hint">Paste an upload path or full image URL.</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment</h3>
+                        </div>
+                        <div class="card-body" id="paymentStatus"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/main.js"></script>
+    <script>
+        let events = [];
+        let creators = [];
+
+        function adminLogout() {
+            localStorage.removeItem('zenbali_admin_token');
+            localStorage.removeItem('zenbali_token');
+            localStorage.removeItem('zenbali_user');
+            window.location.href = Utils.appUrl('/admin/login.html');
+        }
+
+        function requireAdmin() {
+            const token = localStorage.getItem('zenbali_admin_token');
+            if (!token) {
+                window.location.href = Utils.appUrl('/admin/login.html');
+                return false;
+            }
+            localStorage.setItem('zenbali_token', token);
+            return true;
+        }
+
+        function showAlert(message, type = 'success') {
+            document.getElementById('alertContainer').innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        function fillSelect(id, items, labelKey = 'name') {
+            const select = document.getElementById(id);
+            select.innerHTML = '<option value="">Select...</option>';
+            items.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item[labelKey];
+                select.appendChild(option);
+            });
+        }
+
+        function renderImagePreview(imageURL) {
+            const preview = document.getElementById('imagePreview');
+            if (imageURL) {
+                preview.innerHTML = `<img src="${Utils.escapeHtml(imageURL)}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.parentNode.innerHTML='<span class=&quot;text-muted&quot;>Invalid image URL</span>'">`;
+            } else {
+                preview.innerHTML = '<span class="text-muted">No image</span>';
+            }
+        }
+
+        function updatePaymentStatusText() {
+            const paid = document.getElementById('isPaidCheckbox').checked;
+            const published = document.getElementById('isPublishedCheckbox').checked;
+            const status = paid && published ? 'Paid and published' : paid ? 'Paid only' : published ? 'Published without payment' : 'Draft / unpaid';
+            const hint = document.getElementById('paymentHint');
+            if (hint) {
+                hint.textContent = status;
+            }
+        }
+
+        function renderPaymentPanel() {
+            document.getElementById('paymentStatus').innerHTML = `
+                <div class="text-center">
+                    <p class="mb-2"><strong style="font-size: 1.5rem; color: var(--primary);">$5 USD</strong></p>
+                    <p class="text-muted mb-3">One-time fee to publish</p>
+                    <div class="form-group text-left">
+                        <label class="form-label">
+                            <input type="checkbox" name="is_paid" id="isPaidCheckbox">
+                            Paid
+                        </label>
+                    </div>
+                    <div class="form-group text-left">
+                        <label class="form-label">
+                            <input type="checkbox" name="is_published" id="isPublishedCheckbox">
+                            Published
+                        </label>
+                    </div>
+                    <p class="form-hint mb-0" id="paymentHint">Draft / unpaid</p>
+                </div>
+            `;
+            document.getElementById('isPaidCheckbox').addEventListener('change', updatePaymentStatusText);
+            document.getElementById('isPublishedCheckbox').addEventListener('change', updatePaymentStatusText);
+        }
+
+        function resetEventForm() {
+            const form = document.getElementById('eventForm');
+            form.reset();
+            form.event_id.value = '';
+            form.price_thousands.value = '0';
+            document.getElementById('imageURLInput').value = '';
+            document.getElementById('eventFormTitle').textContent = 'Create Event';
+            document.getElementById('eventFormSubtitle').textContent = 'Same field grouping and layout as creator edit event';
+            document.getElementById('pageTitle').textContent = 'Create Event';
+            document.getElementById('pageSubtitle').textContent = 'Use a dedicated admin form instead of mixing event creation into the directory page.';
+            document.getElementById('eventSaveBtn').textContent = 'Create Event';
+            renderImagePreview('');
+            renderPaymentPanel();
+        }
+
+        function setEditMode(event) {
+            const form = document.getElementById('eventForm');
+            form.event_id.value = event.id;
+            form.creator_id.value = event.creator_id || '';
+            form.title.value = event.title || '';
+            form.event_date.value = event.event_date || '';
+            form.event_time.value = (event.event_time || '').slice(0, 5);
+            form.location_id.value = event.location_id || '';
+            form.event_type_id.value = event.event_type_id || '';
+            form.duration.value = event.duration || '';
+            form.entrance_type_id.value = event.entrance_type_id || '';
+            form.price_thousands.value = Math.round((event.entrance_fee || 0) / 1000);
+            form.participant_group_type.value = event.participant_group_type || '';
+            form.lead_by.value = event.lead_by || '';
+            form.contact_email.value = event.contact_email || '';
+            form.contact_mobile.value = event.contact_mobile || '';
+            form.notes.value = event.notes || '';
+            document.getElementById('imageURLInput').value = event.image_url || '';
+            renderImagePreview(event.image_url || '');
+            renderPaymentPanel();
+            document.getElementById('isPaidCheckbox').checked = !!event.is_paid;
+            document.getElementById('isPublishedCheckbox').checked = !!event.is_published;
+            updatePaymentStatusText();
+            document.getElementById('eventFormTitle').textContent = 'Edit Event';
+            document.getElementById('eventFormSubtitle').textContent = 'Same layout as creator edit event, with admin creator/payment control';
+            document.getElementById('pageTitle').textContent = 'Edit Event';
+            document.getElementById('pageSubtitle').textContent = 'Update event details in a dedicated admin form.';
+            document.getElementById('eventSaveBtn').textContent = 'Update Event';
+        }
+
+        async function loadReferences() {
+            const [creatorsRes, locationsRes, eventTypesRes, entranceTypesRes] = await Promise.all([
+                API.get('/admin/creators?limit=100'),
+                API.get('/locations'),
+                API.get('/event-types'),
+                API.get('/entrance-types')
+            ]);
+            creators = creatorsRes.data.creators || [];
+            fillSelect('creatorSelect', creators);
+            fillSelect('locationSelect', locationsRes.data || []);
+            fillSelect('eventTypeSelect', eventTypesRes.data || []);
+            fillSelect('entranceTypeSelect', entranceTypesRes.data || []);
+        }
+
+        async function loadEvents() {
+            const response = await API.get('/admin/events?limit=100');
+            events = response.success ? (response.data.events || []) : [];
+        }
+
+        async function loadEventForEdit(id) {
+            await loadEvents();
+            const event = events.find(item => item.id === id);
+            if (!event) {
+                showAlert('Event not found.', 'error');
+                return;
+            }
+            setEditMode(event);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAdmin()) return;
+            renderPaymentPanel();
+            resetEventForm();
+
+            try {
+                await loadReferences();
+                const eventId = Utils.getQueryParam('id');
+                if (eventId) {
+                    await loadEventForEdit(eventId);
+                }
+            } catch (error) {
+                showAlert('Failed to load admin event tools.', 'error');
+            }
+
+            document.getElementById('imageURLInput').addEventListener('input', (e) => {
+                renderImagePreview(e.target.value.trim());
+            });
+
+            document.getElementById('eventForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const id = form.event_id.value;
+                const timeValue = form.event_time.value;
+                const priceThousands = parseInt(form.price_thousands.value || '0', 10) || 0;
+                const payload = {
+                    creator_id: form.creator_id.value,
+                    title: form.title.value.trim(),
+                    event_date: form.event_date.value,
+                    event_time: timeValue ? `${timeValue}:00` : '',
+                    location_id: parseInt(form.location_id.value, 10),
+                    event_type_id: parseInt(form.event_type_id.value, 10),
+                    duration: form.duration.value.trim(),
+                    entrance_type_id: parseInt(form.entrance_type_id.value, 10),
+                    price_thousands: priceThousands,
+                    entrance_fee: priceThousands * 1000,
+                    participant_group_type: form.participant_group_type.value,
+                    lead_by: form.lead_by.value.trim(),
+                    contact_email: form.contact_email.value.trim(),
+                    contact_mobile: form.contact_mobile.value.trim(),
+                    notes: form.notes.value.trim(),
+                    image_url: document.getElementById('imageURLInput').value.trim(),
+                    is_paid: document.getElementById('isPaidCheckbox').checked,
+                    is_published: document.getElementById('isPublishedCheckbox').checked
+                };
+
+                const btn = document.getElementById('eventSaveBtn');
+                btn.disabled = true;
+
+                try {
+                    if (id) {
+                        await API.put(`/admin/events/${id}`, payload);
+                        window.location.href = Utils.appUrl('/admin/events.html');
+                    } else {
+                        await API.post('/admin/events', payload);
+                        showAlert('Event created successfully.');
+                        resetEventForm();
+                    }
+                } catch (error) {
+                    showAlert(error.message || 'Failed to save event.', 'error');
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>

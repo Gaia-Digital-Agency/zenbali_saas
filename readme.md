@@ -1,7 +1,7 @@
 # Zen Bali
 
 **Created:** 2025-01-03
-**Last Updated:** 2026-01-13
+**Last Updated:** 2026-03-28
 **GitHub Remote:** https://github.com/net1io/zenbali
 **Developed by:** net1io.com
 **Copyright (C) 2024-2026**
@@ -34,7 +34,7 @@ Zen Bali is a SaaS events platform for Bali, Indonesia, accessible at **zenbali.
 
 ## Architecture
 
-The application is designed for cloud-native deployment, primarily on Google Cloud Platform.
+The actual production deployment runs on the Google Compute Engine VM `gda-s01`. The live app serves `https://zenbali.site`, the Go backend listens on `127.0.0.1:8081`, PostgreSQL runs locally on the VM at `127.0.0.1:5432`, and uploads are stored in Google Cloud Storage under `gs://gda-s01-bucket/zenbali/`.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -58,23 +58,20 @@ The application is designed for cloud-native deployment, primarily on Google Clo
 │               ┌───────────────┴───────────────┐                    │
 │               ▼                               ▼                     │
 │   ┌───────────────────────┐     ┌───────────────────────────┐      │
-│   │      Cloud Run        │     │   Cloud Storage (GCS)      │      │
-│   │    (Go Backend)       │     │    (Event Images)          │      │
+│   │  Compute Engine VM    │     │   Cloud Storage (GCS)      │      │
+│   │      gda-s01          │     │    (Event Images)          │      │
 │   │                       │     │                            │      │
-│   │  - REST API Server    │     │  - Public bucket           │      │
-│   │  - Static Frontend    │     │  - CDN enabled             │      │
-│   │  - Stripe Webhooks    │     │  - Max 5MB per image       │      │
+│   │  - Go API + frontend  │     │  - Bucket gda-s01-bucket   │      │
+│   │  - systemd service    │     │  - Prefix zenbali          │      │
+│   │  - local PostgreSQL   │     │  - Public asset delivery   │      │
 │   └───────────┬───────────┘     └───────────────────────────┘      │
 │               │                                                     │
 │               ▼                                                     │
-│   ┌───────────────────────┐     ┌───────────────────────────┐      │
-│   │      Cloud SQL        │     │    Secret Manager          │      │
-│   │   (PostgreSQL 15)     │     │                            │      │
-│   │                       │     │  - DB credentials          │      │
-│   │  - Private IP         │     │  - Stripe API keys         │      │
-│   │  - Daily backups      │     │  - JWT secrets             │      │
-│   │  - 7-day retention    │     │  - Admin credentials       │      │
-│   └───────────────────────┘     └───────────────────────────┘      │
+│   ┌───────────────────────┐                                         │
+│   │        Nginx          │                                         │
+│   │  TLS + reverse proxy  │                                         │
+│   │  zenbali.site         │                                         │
+│   └───────────────────────┘                                         │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
 
@@ -212,11 +209,7 @@ zenbali/
    - **Main Page:** http://localhost:8080
    - **API Health:** http://localhost:8080/api/health
    - **Creator Portal:** http://localhost:8080/creator/login.html
-     - Email: `creator@test.com`
-     - Password: `admin123`
    - **Admin Panel:** http://localhost:8080/admin/login.html
-     - Email: `admin@zenbali.org`
-     - Password: `admin123`
 
    > **Note:** See [reference/testing.md](reference/testing.md) for detailed testing instructions.
 
@@ -283,15 +276,15 @@ JWT_EXPIRY_HOURS=24
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_CENTS=500
+STRIPE_PRICE_CENTS=300
 
 # Local Storage
 UPLOAD_DIR=./uploads
 MAX_UPLOAD_SIZE_MB=5
 
 # Admin Configuration
-ADMIN_EMAIL=admin@zenbali.org
-ADMIN_PASSWORD=admin123
+ADMIN_EMAIL=admin@zenbali.site
+ADMIN_PASSWORD=<set-locally>
 ```
 
 ---
@@ -469,7 +462,7 @@ tail -f logs/server.log
 
 ## Deployment
 
-See [reference/deployment.md](reference/deployment.md) for detailed deployment instructions to Google Cloud Platform.
+Production runs on the Compute Engine VM `gda-s01`. See [reference/deployment.md](reference/deployment.md) and [reference/server_info.md](reference/server_info.md) for the verified VM deployment and runtime details.
 
 ---
 

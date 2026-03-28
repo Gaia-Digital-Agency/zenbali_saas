@@ -2,12 +2,12 @@
 
 Stripe payment on production is now configured for live mode.
 
-Current production state on `https://zenbali.site`:
+Current verified production state on `https://zenbali.site`:
 
 - `STRIPE_SECRET_KEY=sk_live_...`
 - `STRIPE_PUBLISHABLE_KEY=pk_live_...`
 - `STRIPE_WEBHOOK_SECRET=whsec_...`
-- `STRIPE_PRICE_CENTS=100`
+- `STRIPE_PRICE_CENTS=300`
 - `BASE_URL=https://zenbali.site`
 
 ## Live Webhook
@@ -27,14 +27,14 @@ The webhook now enforces signature verification in production.
 
 ## Current Price
 
-- Event posting fee: `$1 USD`
-- Stripe amount: `100` cents
+- Event posting fee: `$3 USD`
+- Stripe amount: `300` cents
 
 ## Recommended Verification
 
 1. Create or use an unpaid event.
 2. Start checkout from the creator portal.
-3. Confirm Stripe Checkout shows `$1.00 USD`.
+3. Confirm Stripe Checkout shows `$3.00 USD`.
 4. Complete a real payment.
 5. Verify:
    - success page returns to `https://zenbali.site`
@@ -47,5 +47,5 @@ The webhook now enforces signature verification in production.
 
 ```bash
 grep -nE '^STRIPE_|^BASE_URL' /var/www/zenbali/.env
-journalctl -u zenbali -f
+journalctl -u zenbali.service -f
 ```

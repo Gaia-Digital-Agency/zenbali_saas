@@ -4,6 +4,17 @@
 
 Zen Bali is a SaaS events platform for Bali, Indonesia. Content creators post events (for $10 USD fee), visitors browse for free.
 
+## Actual Production State
+
+- Production server: Google Compute Engine VM `gda-s01`
+- Project path on VM: `/var/www/zenbali`
+- Runtime service: `zenbali.service`
+- Public site: `https://zenbali.site`
+- Backend bind: `127.0.0.1:8081`
+- PostgreSQL: `127.0.0.1:5432`
+- Upload backend: GCS bucket `gs://gda-s01-bucket/zenbali/`
+- Current Stripe posting price on VM: `300` cents (`$3 USD`)
+
 ## Tech Stack
 
 - **Backend:** Go 1.22+ with Chi router
@@ -55,21 +66,16 @@ tail -f logs/server.log
 docker exec -it zenbali-postgres psql -U zenbali -d zenbali
 ```
 
-## Test Accounts
+## Credentials
 
-**Admin:**
-- URL: http://localhost:8080/admin/login.html
-- Email: admin@zenbali.org
-- Password: admin123
-
-**Creator:**
-- URL: http://localhost:8080/creator/login.html
-- Email: creator@test.com
-- Password: admin123
+- Production admin email currently configured on VM: `admin@zenbali.site`
+- Production passwords are not documented here
+- Local development credentials may differ from production
 
 ## API Base URL
 
 - Development: http://localhost:8080/api
+- Production: https://zenbali.site/api
 
 ## Database
 

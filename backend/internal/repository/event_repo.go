@@ -161,8 +161,14 @@ func (r *EventRepository) List(ctx context.Context, filter models.EventListFilte
 		conditions = append(conditions, "e.is_published = true")
 	}
 
-	if !filter.IncludePast {
+	if !filter.IncludePast && !filter.ShowPastEvents {
 		conditions = append(conditions, fmt.Sprintf("e.event_date >= $%d", argNum))
+		args = append(args, time.Now().Format("2006-01-02"))
+		argNum++
+	}
+
+	if filter.ShowPastEvents {
+		conditions = append(conditions, fmt.Sprintf("e.event_date < $%d", argNum))
 		args = append(args, time.Now().Format("2006-01-02"))
 		argNum++
 	}
@@ -238,6 +244,10 @@ func (r *EventRepository) List(ctx context.Context, filter models.EventListFilte
 	offset := (filter.Page - 1) * filter.Limit
 
 	// Data query
+	orderBy := "e.event_date ASC, e.created_at DESC"
+	if filter.ShowPastEvents {
+		orderBy = "e.event_date DESC, e.created_at DESC"
+	}
 	selectQuery := `
 		SELECT
 			e.id, e.creator_id, e.title, e.event_date, e.event_time::text, e.location_id,
@@ -247,10 +257,9 @@ func (r *EventRepository) List(ctx context.Context, filter models.EventListFilte
 			e.is_paid, e.is_published, e.created_at, e.updated_at,
 			c.name as creator_name, c.organization_name,
 			l.name as location_name, et.name as event_type_name, ent.name as entrance_type_name
-	` + whereClause + fmt.Sprintf(" ORDER BY e.event_date ASC, e.created_at DESC LIMIT $%d OFFSET $%d", argNum, argNum+1)
+	` + whereClause + fmt.Sprintf(" ORDER BY %s LIMIT $%d OFFSET $%d", orderBy, argNum, argNum+1)
 
 	args = append(args, filter.Limit, offset)
-
 	rows, err := r.pool.Query(ctx, selectQuery, args...)
 	if err != nil {
 		return nil, 0, err

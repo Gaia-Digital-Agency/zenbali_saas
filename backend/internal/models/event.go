@@ -83,6 +83,7 @@ type EventListFilter struct {
 	Search         string    `json:"search"`
 	CreatorID      uuid.UUID `json:"creator_id"`
 	IncludePast    bool      `json:"include_past"`
+	ShowPastEvents bool      `json:"show_past_events"`
 	OnlyPublished  bool      `json:"only_published"`
 	Page           int       `json:"page"`
 	Limit          int       `json:"limit"`

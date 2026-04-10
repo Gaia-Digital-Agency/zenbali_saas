@@ -131,7 +131,7 @@
                                                     <a href="${Utils.appUrl(`/event.html?id=${event.id}`)}" target="_blank" class="btn btn-sm btn-outline">View</a>
                                                     <a href="${Utils.appUrl(`/creator/edit-event.html?id=${event.id}`)}" class="btn btn-sm btn-secondary">Edit</a>
                                                     ${!event.is_paid ? `<button onclick="payForEvent('${event.id}')" class="btn btn-sm btn-primary">Pay $1</button>` : ''}
-                                                    <button onclick="deleteEvent('${event.id}', '${Utils.escapeHtml(event.title)}')" class="btn btn-sm btn-danger">Delete</button>
+                                                    <button onclick="deleteEvent('${event.id}', this)" data-title="${Utils.escapeHtml(event.title)}" class="btn btn-sm btn-danger">Delete</button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -157,7 +157,8 @@
             }
         }
 
-        async function deleteEvent(eventId, title) {
+        async function deleteEvent(eventId, btn) {
+            const title = btn.dataset.title;
             if (!confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) {
                 return;
             }

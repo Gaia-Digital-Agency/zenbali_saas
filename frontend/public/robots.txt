@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /creator/
+Disallow: /api/
+
+Sitemap: http://34.124.244.233/sitemap.xml

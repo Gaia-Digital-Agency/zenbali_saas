@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Admin - Payments</title>
+    <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+    <header class="header" style="background: var(--gray-900);">
+        <div class="container">
+            <div class="header-content">
+                <a href="dashboard.html" class="logo" style="color: var(--orange-400);"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <nav class="nav">
+                    <a href="dashboard.html" class="nav-link" style="color: white;">Dashboard</a>
+                    <a href="events.html" class="nav-link" style="color: white;">Events</a>
+                    <a href="creators.html" class="nav-link" style="color: white;">Creators</a>
+                    <a href="payments.html" class="nav-link active" style="color: white;">Payments</a>
+                    <a href="#" class="nav-link" style="color: white;" onclick="adminLogout()">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <h1 class="mb-4">Payments</h1>
+            <div id="payments-container"></div>
+        </div>
+    </main>
+
+    <script src="../js/main.js"></script>
+    <script>
+        function adminLogout() {
+            localStorage.removeItem('zenbali_admin_token');
+            window.location.href = Utils.appUrl('/admin/login.html');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('zenbali_admin_token')) {
+                window.location.href = Utils.appUrl('/admin/login.html');
+                return;
+            }
+            loadPayments();
+        });
+
+        async function loadPayments() {
+            const container = document.getElementById('payments-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            try {
+                const response = await API.get('/admin/payments');
+                if (response.success) {
+                    renderPayments(response.data.payments);
+                } else {
+                    container.innerHTML = `<div class="alert alert-danger">${response.message}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="alert alert-danger">Failed to load payments.</div>`;
+                console.error('Failed to load payments:', error);
+            }
+        }
+
+        function renderPayments(payments) {
+            const container = document.getElementById('payments-container');
+            if (!payments || payments.length === 0) {
+                container.innerHTML = '<p>No payments found.</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Creator</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${payments.map(payment => `
+                        <tr>
+                            <td>${Utils.escapeHtml(payment.event_title)}</td>
+                            <td>${Utils.escapeHtml(payment.creator_name)}</td>
+                            <td>$${(payment.amount_cents / 100).toFixed(2)}</td>
+                            <td><span class="badge badge-${payment.status === 'succeeded' ? 'success' : 'warning'}">${payment.status}</span></td>
+                            <td>${Utils.formatDateTime(payment.created_at)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            container.innerHTML = '';
+            container.appendChild(table);
+        }
+    </script>
+</body>
+</html>

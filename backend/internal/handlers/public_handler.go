@@ -28,7 +28,7 @@ func NewPublicHandler(svcs *services.Services, repos *repository.Repositories) *
 func (h *PublicHandler) ListEvents(w http.ResponseWriter, r *http.Request) {
 	filter := models.EventListFilter{
 		OnlyPublished: true,
-		IncludePast:   false,
+		IncludePast:   true,
 	}
 
 	// Parse query parameters
@@ -83,7 +83,7 @@ func (h *PublicHandler) ListEvents(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if filter.Limit == 0 {
-		filter.Limit = 20
+		filter.Limit = 100
 	}
 
 	result, err := h.services.Event.ListPublic(r.Context(), filter)

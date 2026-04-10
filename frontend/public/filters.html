@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Filter Events - Zen Bali</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        html, body { height: 100%; }
+        body { display: flex; flex-direction: column; min-height: 100vh; }
+        main { flex: 1; display: flex; align-items: center; padding: 1.5rem 0; }
+        .filter-card { background: var(--bg-primary); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 1.75rem 1.5rem; width: 100%; max-width: 640px; margin: 0 auto; }
+        .filter-card h1 { font-size: 1.35rem; font-weight: 700; margin-bottom: 1.25rem; }
+        .filter-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; }
+        .filter-fields .full { grid-column: 1 / -1; }
+        .filter-field label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.3rem; }
+        .filter-field select,
+        .filter-field input { width: 100%; padding: 0.5rem 0.75rem; font-size: 0.9rem; border: 1px solid var(--border-default); border-radius: var(--radius); background: var(--bg-primary); }
+        .filter-field select:focus,
+        .filter-field input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(249,115,22,0.1); }
+        .filter-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+        .filter-actions .btn { flex: 1; }
+        .footer { padding: 0.6rem 0; }
+        @media (max-width: 480px) {
+            .filter-fields { grid-template-columns: 1fr; }
+            .filter-fields .full { grid-column: 1; }
+            main { padding: 1rem 0; align-items: flex-start; }
+            .filter-card { padding: 1.25rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="./" class="logo"><span>🌴</span><span class="logo-text">Zen Bali</span></a>
+                <nav class="nav">
+                    <a href="filters.html" class="nav-link active">Filter Events</a>
+                    <a href="events.html" class="nav-link">See Events</a>
+                    <a href="creator/login.html" class="nav-link">Post Event</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="filter-card">
+                <h1>🔍 Filter Events</h1>
+                <form id="filterForm">
+                    <div class="filter-fields">
+                        <div class="filter-field">
+                            <label>Quick Select</label>
+                            <select id="filterCurrent" name="current">
+                                <option value="">— choose —</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="today">Today</option>
+                                <option value="tomorrow">Tomorrow</option>
+                            </select>
+                        </div>
+                        <div class="filter-field">
+                            <label>Location</label>
+                            <select id="filterLocation" name="location_id">
+                                <option value="">All Locations</option>
+                            </select>
+                        </div>
+                        <div class="filter-field">
+                            <label>Event Type</label>
+                            <select id="filterEventType" name="event_type_id">
+                                <option value="">All Types</option>
+                            </select>
+                        </div>
+                        <div class="filter-field">
+                            <label>Entrance</label>
+                            <select id="filterEntranceType" name="entrance_type_id">
+                                <option value="">All</option>
+                            </select>
+                        </div>
+                        <div class="filter-field">
+                            <label>Date From</label>
+                            <input type="date" id="filterDateFrom" name="date_from">
+                        </div>
+                        <div class="filter-field">
+                            <label>Date To</label>
+                            <input type="date" id="filterDateTo" name="date_to">
+                        </div>
+                        <div class="filter-field full">
+                            <label>Search Keywords</label>
+                            <input type="text" id="filterSearch" name="search" placeholder="e.g. yoga, sound healing, Ubud…">
+                        </div>
+                    </div>
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary btn-lg">See Events →</button>
+                        <button type="button" class="btn btn-secondary" onclick="clearFilters()">Clear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a> | Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        function syncDatesFromCurrent(val) {
+            if (!val) return;
+            const t = new Date();
+            if (val === 'yesterday') t.setDate(t.getDate() - 1);
+            if (val === 'tomorrow')  t.setDate(t.getDate() + 1);
+            const d = t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+            document.getElementById('filterDateFrom').value = d;
+            document.getElementById('filterDateTo').value   = d;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadFilters();
+            // Pre-fill from URL params if coming back
+            const p = new URLSearchParams(window.location.search);
+            if (p.get('current'))          { document.getElementById('filterCurrent').value = p.get('current'); syncDatesFromCurrent(p.get('current')); }
+            if (p.get('location_id'))      document.getElementById('filterLocation').value = p.get('location_id');
+            if (p.get('event_type_id'))    document.getElementById('filterEventType').value = p.get('event_type_id');
+            if (p.get('entrance_type_id')) document.getElementById('filterEntranceType').value = p.get('entrance_type_id');
+            if (p.get('date_from'))        document.getElementById('filterDateFrom').value = p.get('date_from');
+            if (p.get('date_to'))          document.getElementById('filterDateTo').value = p.get('date_to');
+            if (p.get('search'))           document.getElementById('filterSearch').value = p.get('search');
+
+            // Auto-fill dates when Quick Select changes
+            document.getElementById('filterCurrent').addEventListener('change', function() {
+                syncDatesFromCurrent(this.value);
+            });
+        });
+
+        async function loadFilters() {
+            try {
+                const [locations, eventTypes, entranceTypes] = await Promise.all([
+                    API.get('/locations'),
+                    API.get('/event-types'),
+                    API.get('/entrance-types')
+                ]);
+                if (locations.success) {
+                    const sel = document.getElementById('filterLocation');
+                    (locations.data || []).forEach(l => {
+                        const o = document.createElement('option');
+                        o.value = l.id; o.textContent = l.name; sel.appendChild(o);
+                    });
+                }
+                if (eventTypes.success) {
+                    const sel = document.getElementById('filterEventType');
+                    (eventTypes.data || []).forEach(t => {
+                        const o = document.createElement('option');
+                        o.value = t.id; o.textContent = t.name; sel.appendChild(o);
+                    });
+                }
+                if (entranceTypes.success) {
+                    const sel = document.getElementById('filterEntranceType');
+                    (entranceTypes.data || []).forEach(t => {
+                        const o = document.createElement('option');
+                        o.value = t.id; o.textContent = t.name; sel.appendChild(o);
+                    });
+                }
+            } catch(e) { console.error('loadFilters', e); }
+        }
+
+        document.getElementById('filterForm').addEventListener('submit', e => {
+            e.preventDefault();
+            const params = new URLSearchParams();
+            const current     = document.getElementById('filterCurrent').value;
+            const location    = document.getElementById('filterLocation').value;
+            const eventType   = document.getElementById('filterEventType').value;
+            const entrance    = document.getElementById('filterEntranceType').value;
+            const dateFrom    = document.getElementById('filterDateFrom').value;
+            const dateTo      = document.getElementById('filterDateTo').value;
+            const search      = document.getElementById('filterSearch').value.trim();
+
+            if (current)   params.set('current', current);
+            if (location)  params.set('location_id', location);
+            if (eventType) params.set('event_type_id', eventType);
+            if (entrance)  params.set('entrance_type_id', entrance);
+            if (dateFrom)  params.set('date_from', dateFrom);
+            if (dateTo)    params.set('date_to', dateTo);
+            if (search)    params.set('search', search);
+
+            window.location.href = 'events.html' + (params.toString() ? '?' + params.toString() : '');
+        });
+
+        function clearFilters() {
+            document.getElementById('filterCurrent').value = '';
+            document.getElementById('filterLocation').value = '';
+            document.getElementById('filterEventType').value = '';
+            document.getElementById('filterEntranceType').value = '';
+            document.getElementById('filterDateFrom').value = '';
+            document.getElementById('filterDateTo').value = '';
+            document.getElementById('filterSearch').value = '';
+        }
+    </script>
+</body>
+</html>

@@ -18,10 +18,6 @@ function formatLocalDate(date) {
 }
 
 function getCurrentDateRange(currentValue) {
-    if (!['yesterday', 'today', 'tomorrow'].includes(currentValue)) {
-        return null;
-    }
-
     const target = new Date();
 
     if (currentValue === 'yesterday') {
@@ -35,18 +31,13 @@ function getCurrentDateRange(currentValue) {
 }
 
 function syncDateInputsFromCurrent(currentValue) {
+    const current = currentValue || 'today';
+    const { dateFrom, dateTo } = getCurrentDateRange(current);
     const dateFromInput = document.getElementById('filterDateFrom');
     const dateToInput = document.getElementById('filterDateTo');
-    const range = getCurrentDateRange(currentValue);
 
-    if (!range) {
-        if (dateFromInput) dateFromInput.value = '';
-        if (dateToInput) dateToInput.value = '';
-        return;
-    }
-
-    if (dateFromInput) dateFromInput.value = range.dateFrom;
-    if (dateToInput) dateToInput.value = range.dateTo;
+    if (dateFromInput) dateFromInput.value = dateFrom;
+    if (dateToInput) dateToInput.value = dateTo;
 }
 
 // Load filter options
@@ -124,12 +115,11 @@ function setupFilterForm() {
         input.addEventListener('change', () => {
             const currentSelect = document.getElementById('filterCurrent');
             if (currentSelect) {
-                const range = getCurrentDateRange(currentSelect.value);
-                if (!range) {
+                const { dateFrom, dateTo } = getCurrentDateRange(currentSelect.value || 'today');
+                if (input.id === 'filterDateFrom' && input.value !== dateFrom) {
                     currentSelect.value = '';
-                } else if (input.id === 'filterDateFrom' && input.value !== range.dateFrom) {
-                    currentSelect.value = '';
-                } else if (input.id === 'filterDateTo' && input.value !== range.dateTo) {
+                }
+                if (input.id === 'filterDateTo' && input.value !== dateTo) {
                     currentSelect.value = '';
                 }
             }
@@ -156,10 +146,10 @@ function setupFilterForm() {
 
 function loadFiltersFromURL() {
     const params = new URLSearchParams(window.location.search);
-    const current = params.get('current') || '';
+    const current = params.get('current') || 'today';
     const currentSelect = document.getElementById('filterCurrent');
     if (currentSelect) {
-        currentSelect.value = ['', 'yesterday', 'today', 'tomorrow'].includes(current) ? current : '';
+        currentSelect.value = ['yesterday', 'today', 'tomorrow'].includes(current) ? current : 'today';
     }
     
     const locationId = params.get('location_id');
@@ -184,8 +174,8 @@ function loadFiltersFromURL() {
     if (dateFrom) {
         const input = document.getElementById('filterDateFrom');
         if (input) input.value = dateFrom;
-    } else if (currentSelect?.value) {
-        syncDateInputsFromCurrent(currentSelect.value);
+    } else {
+        syncDateInputsFromCurrent(currentSelect?.value || 'today');
     }
 
     const dateTo = params.get('date_to');
@@ -193,7 +183,7 @@ function loadFiltersFromURL() {
         const input = document.getElementById('filterDateTo');
         if (input) input.value = dateTo;
     } else if (!dateFrom) {
-        syncDateInputsFromCurrent(currentSelect?.value);
+        syncDateInputsFromCurrent(currentSelect?.value || 'today');
     }
 
     const search = params.get('search');
@@ -246,7 +236,7 @@ async function loadEvents() {
         // Build query string
         const params = new URLSearchParams();
         params.append('page', currentPage);
-        params.append('limit', 100);
+        params.append('limit', 12);
 
         const locationId = document.getElementById('filterLocation')?.value;
         if (locationId) params.append('location_id', locationId);
@@ -261,22 +251,18 @@ async function loadEvents() {
         if (dateFrom) {
             params.append('date_from', dateFrom);
         } else {
-            const current = document.getElementById('filterCurrent')?.value;
+            const current = document.getElementById('filterCurrent')?.value || 'today';
             const range = getCurrentDateRange(current);
-            if (range) {
-                params.append('date_from', range.dateFrom);
-            }
+            params.append('date_from', range.dateFrom);
         }
 
         const dateTo = document.getElementById('filterDateTo')?.value;
         if (dateTo) {
             params.append('date_to', dateTo);
         } else {
-            const current = document.getElementById('filterCurrent')?.value;
+            const current = document.getElementById('filterCurrent')?.value || 'today';
             const range = getCurrentDateRange(current);
-            if (range) {
-                params.append('date_to', range.dateTo);
-            }
+            params.append('date_to', range.dateTo);
         }
 
         const search = document.getElementById('filterSearch')?.value;

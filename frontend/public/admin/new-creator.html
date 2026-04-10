@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Admin - New Creator</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <header class="header header-dark">
+        <div class="container">
+            <div class="header-content">
+                <a href="/admin/dashboard.html" class="logo"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <nav class="nav">
+                    <a href="/admin/dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="/admin/events.html" class="nav-link">Events</a>
+                    <a href="/admin/creators.html" class="nav-link">Creators</a>
+                    <a href="/admin/payments.html" class="nav-link">Payments</a>
+                    <a href="/admin/adminprofile.html" class="nav-link">Profile</a>
+                    <a href="#" class="nav-link" onclick="adminLogout()">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 3rem 0;">
+        <div class="container" style="max-width: 600px;">
+            <div class="d-flex align-center mb-4" style="gap: 1rem;">
+                <a href="/admin/creators.html" class="btn btn-secondary btn-sm">← Back</a>
+                <h1>New Creator</h1>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form id="creatorForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">First Name <span class="required">*</span></label>
+                                <input type="text" name="first_name" class="form-control" required minlength="2" maxlength="100" autocomplete="given-name" placeholder="First name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name <span class="required">*</span></label>
+                                <input type="text" name="last_name" class="form-control" required minlength="2" maxlength="100" autocomplete="family-name" placeholder="Last name">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Organization Name</label>
+                            <input type="text" name="organization_name" class="form-control" placeholder="Business name (optional)">
+                            <span class="form-hint">Leave blank for personal account.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email <span class="required">*</span></label>
+                            <input type="email" name="email" class="form-control" required autocomplete="email" placeholder="your@email.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Whatsapp / Mobile</label>
+                            <input type="tel" name="mobile" class="form-control" inputmode="tel" autocomplete="tel" placeholder="+62 812 3456 7890">
+                            <span class="form-hint">Include country code.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password <span class="required">*</span></label>
+                            <div class="password-field">
+                                <input type="password" name="password" class="form-control" required minlength="8" autocomplete="new-password" placeholder="Minimum 8 characters">
+                                <button type="button" class="password-toggle" data-password-toggle="password" aria-pressed="false">Show</button>
+                            </div>
+                            <span class="form-hint">Must include uppercase, lowercase, number, and special character.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Confirm Password <span class="required">*</span></label>
+                            <div class="password-field">
+                                <input type="password" name="confirm_password" class="form-control" required autocomplete="new-password" placeholder="Confirm password">
+                                <button type="button" class="password-toggle" data-password-toggle="confirm_password" aria-pressed="false">Show</button>
+                            </div>
+                        </div>
+
+                        <div class="form-row" style="margin-bottom: 1.5rem;">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <input type="checkbox" name="is_active" checked> Active
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <input type="checkbox" name="is_verified"> Verified
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2" style="flex-wrap: wrap;">
+                            <button type="submit" class="btn btn-primary" id="saveBtn">Create Creator</button>
+                            <a href="/admin/creators.html" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a> | Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script>
+        const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const PHONE_REGEX = /^[+]?[0-9()\-\s]{8,20}$/;
+        const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/;
+
+        function adminLogout() {
+            localStorage.removeItem('zenbali_admin_token');
+            localStorage.removeItem('zenbali_token');
+            localStorage.removeItem('zenbali_user');
+            window.location.href = `${APP_BASE}/admin/login.html`;
+        }
+
+        function requireAdmin() {
+            const token = localStorage.getItem('zenbali_admin_token');
+            if (!token) { window.location.href = `${APP_BASE}/admin/login.html`; return false; }
+            localStorage.setItem('zenbali_token', token);
+            return true;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!requireAdmin()) return;
+
+            // Password toggle
+            document.querySelectorAll('[data-password-toggle]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const input = btn.closest('.password-field').querySelector('input');
+                    const show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    btn.textContent = show ? 'Hide' : 'Show';
+                    btn.setAttribute('aria-pressed', show);
+                });
+            });
+
+            document.getElementById('creatorForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const firstName = form.first_name.value.trim();
+                const lastName = form.last_name.value.trim();
+                const email = form.email.value.trim();
+                const mobile = form.mobile.value.trim();
+                const password = form.password.value;
+                const confirmPassword = form.confirm_password.value;
+
+                if (!firstName || !lastName) { Utils.showError('First and last name are required.'); return; }
+                if (!EMAIL_REGEX.test(email)) { Utils.showError('Please enter a valid email address.'); return; }
+                if (mobile && !PHONE_REGEX.test(mobile)) { Utils.showError('Please enter a valid mobile number.'); return; }
+                if (!PASSWORD_REGEX.test(password)) { Utils.showError('Password must be at least 8 characters and include uppercase, lowercase, number, and special character.'); return; }
+                if (password !== confirmPassword) { Utils.showError('Passwords do not match.'); return; }
+
+                const payload = {
+                    name: `${firstName} ${lastName}`.trim(),
+                    email,
+                    organization_name: form.organization_name.value.trim(),
+                    mobile,
+                    password,
+                    is_active: form.is_active.checked,
+                    is_verified: form.is_verified.checked
+                };
+
+                const btn = document.getElementById('saveBtn');
+                btn.disabled = true;
+                btn.textContent = 'Creating...';
+                try {
+                    await API.post('/admin/creators', payload);
+                    Utils.showSuccess('Creator created successfully.');
+                    setTimeout(() => { window.location.href = `${APP_BASE}/admin/creators.html`; }, 1000);
+                } catch (error) {
+                    Utils.showError(error.message || 'Failed to create creator.');
+                    btn.disabled = false;
+                    btn.textContent = 'Create Creator';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

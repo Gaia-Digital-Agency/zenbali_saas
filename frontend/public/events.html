@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Events - Zen Bali</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .active-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; align-items: center; }
+        .active-filters .filter-tag {
+            background: var(--primary-light); color: var(--primary);
+            font-size: 0.8rem; font-weight: 500;
+            padding: 0.25rem 0.6rem; border-radius: 999px;
+        }
+        .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem; }
+        .footer { padding: 0.6rem 0; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="./" class="logo"><span>🌴</span><span class="logo-text">Zen Bali</span></a>
+                <nav class="nav">
+                    <a href="filters.html" class="nav-link">Filter Events</a>
+                    <a href="events.html" class="nav-link active">See Events</a>
+                    <a href="creator/login.html" class="nav-link">Post Event</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 1.5rem 0;">
+        <div class="container">
+            <div class="filter-bar">
+                <h1 style="font-size: 1.35rem; font-weight: 700;">Events in Bali</h1>
+                <a href="filters.html" class="btn btn-outline btn-sm">🔍 Change Filter</a>
+            </div>
+
+            <div id="activeFilters" class="active-filters"></div>
+            <div id="eventsContainer"><div class="loading loading-lg"><div class="spinner"></div></div></div>
+            <div id="pagination" class="pagination"></div>
+        </div>
+    </main>
+
+    <!-- Event Detail Modal -->
+    <div id="eventModal" class="event-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="eventModalTitle">
+        <div class="event-modal" id="eventModalBox">
+            <div class="event-modal-close-bar">
+                <span class="em-brand">🌴 Zen Bali</span>
+                <button class="event-modal-close-btn" onclick="closeEventModal()" aria-label="Close">✕ Close</button>
+            </div>
+            <div class="event-modal-inner" id="eventModalContent">
+                <div class="loading loading-lg" style="flex:1;padding:3rem 0;"><div class="spinner"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a> | Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script src="js/events.js?v=20260324"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            showActiveFilterTags();
+            await loadFilters();  // needed by events.js for label lookups
+            loadEvents();
+            const openId = Utils.getQueryParam('event');
+            if (openId) openEventModal(openId, false);
+        });
+
+        function showActiveFilterTags() {
+            const p = new URLSearchParams(window.location.search);
+            const container = document.getElementById('activeFilters');
+            const labels = {
+                current: { yesterday: 'Yesterday', today: 'Today', tomorrow: 'Tomorrow' }
+            };
+            const tags = [];
+            if (p.get('current'))   tags.push(labels.current[p.get('current')] || p.get('current'));
+            if (p.get('date_from')) tags.push('From: ' + p.get('date_from'));
+            if (p.get('date_to'))   tags.push('To: ' + p.get('date_to'));
+            if (p.get('search'))    tags.push('Search: ' + p.get('search'));
+            if (tags.length) {
+                container.innerHTML = tags.map(t => `<span class="filter-tag">${Utils.escapeHtml(t)}</span>`).join('');
+            }
+        }
+
+        // ── Event Detail Modal ──────────────────────────────────────────
+        function openEventModal(id, pushState = true) {
+            const overlay = document.getElementById('eventModal');
+            const content = document.getElementById('eventModalContent');
+            content.innerHTML = `<div class="loading loading-lg" style="padding:4rem 0;"><div class="spinner"></div></div>`;
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            if (pushState) {
+                const url = new URL(window.location);
+                url.searchParams.set('event', id);
+                history.pushState({ eventId: id }, '', url.toString());
+            }
+            API.get(`/events/${id}`).then(res => {
+                if (res.success && res.data) content.innerHTML = renderEventModalContent(res.data);
+                else content.innerHTML = `<div class="alert alert-error" style="margin:2rem;">Event not found.</div>`;
+            }).catch(() => {
+                content.innerHTML = `<div class="alert alert-error" style="margin:2rem;">Failed to load event.</div>`;
+            });
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.remove('active');
+            document.body.style.overflow = '';
+            const url = new URL(window.location);
+            if (url.searchParams.has('event')) { url.searchParams.delete('event'); history.pushState(null, '', url.toString()); }
+        }
+
+        document.getElementById('eventModal').addEventListener('click', function(e) { if (e.target === this) closeEventModal(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEventModal(); });
+        window.addEventListener('popstate', () => {
+            const id = Utils.getQueryParam('event');
+            if (id) openEventModal(id, false);
+            else { document.getElementById('eventModal').classList.remove('active'); document.body.style.overflow = ''; }
+        });
+
+        function renderEventModalContent(event) {
+            const imageUrl = (event.image_url && event.image_url.trim()) ? event.image_url : Utils.appUrl('/assets/images/placeholder.jpg');
+            const eventDate = Utils.formatDate(event.event_date);
+            const price = Utils.formatCurrency(event.entrance_fee);
+            const organizer = event.organization_name || event.organizer || '';
+            return `
+                <div class="event-modal-img-col">
+                    <img src="${Utils.escapeHtml(imageUrl)}" alt="${Utils.escapeHtml(event.title)}" onerror="this.src='${Utils.appUrl('/assets/images/placeholder.jpg')}'">
+                </div>
+                <div class="event-modal-info-col">
+                    <div class="event-modal-badges">
+                        <span class="badge badge-primary">${Utils.escapeHtml(event.event_type)}</span>
+                        <span class="badge badge-gray">${Utils.escapeHtml(event.entrance_type)}</span>
+                    </div>
+                    <h2 class="event-modal-title" id="eventModalTitle">${Utils.escapeHtml(event.title)}</h2>
+                    <div class="event-modal-meta">
+                        <div class="event-modal-meta-item"><strong>📅 Date</strong><span>${eventDate}${event.event_time ? ' · ' + Utils.escapeHtml(event.event_time) : ''}</span></div>
+                        <div class="event-modal-meta-item"><strong>💰 Price</strong><span>${price}</span></div>
+                        <div class="event-modal-meta-item"><strong>📍 Location</strong><span>${Utils.escapeHtml(event.location)}${event.venue ? ' · ' + Utils.escapeHtml(event.venue) : ''}</span></div>
+                        <div class="event-modal-meta-item"><strong>⏱️ Duration</strong><span>${Utils.escapeHtml(event.duration || '—')}</span></div>
+                    </div>
+                    ${event.notes ? `<p class="event-modal-notes">${Utils.escapeHtml(event.notes)}</p>` : ''}
+                    <div class="event-modal-organizer">
+                        <strong>🏢 ${Utils.escapeHtml(organizer)}</strong>
+                        <div class="event-modal-actions">
+                            <a href="mailto:${Utils.escapeHtml(event.contact_email)}" class="btn btn-primary">📧 Email</a>
+                            ${event.contact_mobile ? `<a href="tel:${Utils.escapeHtml(event.contact_mobile)}" class="btn btn-secondary">📞 ${Utils.escapeHtml(event.contact_mobile)}</a>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+        }
+    </script>
+</body>
+</html>

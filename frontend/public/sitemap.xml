@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>http://34.124.244.233/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <lastmod>2026-03-23</lastmod>
+  </url>
+  <url>
+    <loc>http://34.124.244.233/creator/register.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>http://34.124.244.233/creator/login.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>

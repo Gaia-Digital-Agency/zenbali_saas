@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Creators</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico?v=20260327b">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png?v=20260327b">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=20260327b">
+    <link rel="shortcut icon" href="../favicon.ico?v=20260327b">
+</head>
+<body>
+    <header class="header" style="background: var(--gray-900); border-bottom: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);">
+        <div class="container">
+            <div class="header-content">
+                <a href="dashboard.html" class="logo" style="color: #ffffff;"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <nav class="nav">
+                    <a href="dashboard.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Dashboard</a>
+                    <a href="events.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">All Events</a>
+                    <a href="event-form.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Create Event</a>
+                    <a href="creators.html" class="nav-link active" style="color: #fff; background: rgba(245, 158, 11, 0.22); border-radius: 999px; padding: 0.5rem 0.9rem; font-weight: 600;">All Creators</a>
+                    <a href="creator-form.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Create Creator</a>
+                    <a href="payments.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Payments</a>
+                    <a href="#" class="nav-link" style="color: rgba(255, 255, 255, 0.82);" onclick="adminLogout()">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 3rem 0;">
+        <div class="container">
+            <div class="d-flex justify-between align-center mb-3" style="gap: 1rem; flex-wrap: wrap;">
+                <div>
+                    <h1>All Creators</h1>
+                    <p class="text-muted mt-1">Browse, edit, and remove creator accounts from one admin list.</p>
+                </div>
+                <a href="creator-form.html" class="btn btn-primary">New Creator</a>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Creator Directory</h2>
+                </div>
+                <div class="card-body">
+                    <div id="creators-container"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/main.js"></script>
+    <script>
+        let creators = [];
+
+        function adminLogout() {
+            localStorage.removeItem('zenbali_admin_token');
+            localStorage.removeItem('zenbali_token');
+            localStorage.removeItem('zenbali_user');
+            window.location.href = Utils.appUrl('/admin/login.html');
+        }
+
+        function requireAdmin() {
+            const token = localStorage.getItem('zenbali_admin_token');
+            if (!token) {
+                window.location.href = Utils.appUrl('/admin/login.html');
+                return false;
+            }
+            localStorage.setItem('zenbali_token', token);
+            return true;
+        }
+
+        function showAlert(message, type = 'success') {
+            document.getElementById('alertContainer').innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        async function deleteCreator(id) {
+            const creator = creators.find(item => item.id === id);
+            if (!creator) return;
+            if (!confirm(`Delete creator "${creator.name}"? This will also delete their events and payments.`)) return;
+
+            try {
+                await API.delete(`/admin/creators/${id}`);
+                showAlert('Creator deleted successfully.');
+                await loadCreators();
+            } catch (error) {
+                showAlert(error.message || 'Failed to delete creator.', 'error');
+            }
+        }
+
+        async function loadCreators() {
+            const container = document.getElementById('creators-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            try {
+                const response = await API.get('/admin/creators?limit=100');
+                creators = response.success ? (response.data.creators || []) : [];
+                renderCreators();
+            } catch (error) {
+                container.innerHTML = '<div class="alert alert-error">Failed to load creators.</div>';
+            }
+        }
+
+        function renderCreators() {
+            const container = document.getElementById('creators-container');
+            if (!creators.length) {
+                container.innerHTML = '<p>No creators found.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Organization</th>
+                                <th>Phone</th>
+                                <th>Active</th>
+                                <th>Verified</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${creators.map(creator => `
+                                <tr>
+                                    <td>${Utils.escapeHtml(creator.name)}</td>
+                                    <td>${Utils.escapeHtml(creator.email)}</td>
+                                    <td>${Utils.escapeHtml(creator.organization_name || '-')}</td>
+                                    <td>${Utils.escapeHtml(creator.mobile || '-')}</td>
+                                    <td>${creator.is_active ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-error">No</span>'}</td>
+                                    <td>${creator.is_verified ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-error">No</span>'}</td>
+                                    <td>
+                                        <div class="d-flex gap-1" style="flex-wrap: wrap;">
+                                            <a class="btn btn-sm btn-secondary" href="creator-form.html?id=${creator.id}">Edit</a>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteCreator('${creator.id}')">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!requireAdmin()) return;
+            loadCreators();
+        });
+    </script>
+</body>
+</html>

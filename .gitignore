@@ -1,0 +1,49 @@
+# Environment variables
+.env
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build outputs
+dist/
+build/
+.gocache/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Logs
+*.log
+logs/
+
+# Testing
+coverage/
+*.test
+*.out
+
+.claude/
+
+# Go SDK (installed locally)
+go/
+go.tar.gz
+
+# GCS credentials
+gcs-key.json
+
+# Uploads (user content)
+uploads/
+
+# Server logs
+server.log
+
+# Env backups
+.env.*.bak

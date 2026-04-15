@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Status - Zen Bali</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico?v=20260327b">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png?v=20260327b">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=20260327b">
+    <link rel="shortcut icon" href="../favicon.ico?v=20260327b">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+            </div>
+        </div>
+    </header>
+    <main style="padding: 4rem 0;">
+        <div class="container" style="max-width: 500px;">
+            <div class="card text-center">
+                <div class="card-body" style="padding: 3rem;">
+                    <div id="statusIcon" style="font-size: 4rem; margin-bottom: 1rem;">⏳</div>
+                    <h1 id="statusTitle">Checking Payment Status...</h1>
+                    <p id="statusMessage" class="text-muted mt-2 mb-4">We are confirming your Stripe payment and publication status.</p>
+                    <div id="statusAlert"></div>
+                    <div class="d-flex gap-2" style="justify-content: center; flex-wrap: wrap;">
+                        <a href="events.html" class="btn btn-primary">View My Events</a>
+                        <a href="../" class="btn btn-secondary">Browse Events</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a><br>Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            requireAuth();
+
+            const eventId = Utils.getQueryParam('event_id');
+            const sessionId = Utils.getQueryParam('session_id');
+
+            if (!eventId) {
+                renderStatus('error', 'Missing Event', 'No event was provided for payment verification.');
+                return;
+            }
+
+            try {
+                const response = await API.get(`/creator/events/${eventId}/verify-payment?session_id=${encodeURIComponent(sessionId || '')}`);
+                const data = response.data || {};
+
+                if (data.is_paid && data.is_published) {
+                    renderStatus('success', 'Payment Confirmed', 'Your event has been published and is now live on Zen Bali.');
+                    return;
+                }
+
+                renderStatus('pending', 'Payment Received, Publication Pending', 'Your checkout succeeded, but the event is not marked live yet. Refresh this page in a moment if needed.');
+            } catch (error) {
+                renderStatus('error', 'Payment Verification Failed', error.message || 'We could not confirm the payment status yet.');
+            }
+        });
+
+        function renderStatus(state, title, message) {
+            const icon = document.getElementById('statusIcon');
+            const titleEl = document.getElementById('statusTitle');
+            const messageEl = document.getElementById('statusMessage');
+            const alertEl = document.getElementById('statusAlert');
+
+            const states = {
+                success: { icon: '🎉', className: 'alert alert-success' },
+                pending: { icon: '⏳', className: 'alert alert-warning' },
+                error: { icon: '⚠️', className: 'alert alert-error' }
+            };
+
+            const current = states[state] || states.pending;
+            icon.textContent = current.icon;
+            titleEl.textContent = title;
+            messageEl.textContent = message;
+            alertEl.innerHTML = `<div class="${current.className}">${message}</div>`;
+        }
+    </script>
+</body>
+</html>

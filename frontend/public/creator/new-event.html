@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Event - Zen Bali</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico?v=20260327b">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png?v=20260327b">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=20260327b">
+    <link rel="shortcut icon" href="../favicon.ico?v=20260327b">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <nav class="nav">
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="recent-events.html" class="nav-link">Recent Events</a>
+                    <a href="events.html" class="nav-link">My Events</a>
+                    <a href="new-event.html" class="nav-link active">Post Event</a>
+                    <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container" style="max-width: 700px;">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title">Post New Event</h1>
+                    <p class="text-muted mt-1">Create your event listing - USD 3 to publish</p>
+                </div>
+                <div class="card-body">
+                    <div id="alertContainer"></div>
+                    
+                    <form id="eventForm">
+                        <div class="form-group">
+                            <label class="form-label">Event Title <span class="required">*</span></label>
+                            <input type="text" name="title" class="form-control" required 
+                                   placeholder="e.g., Full Moon Yoga Retreat">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Event Date <span class="required">*</span></label>
+                                <input type="date" name="event_date" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Event Time (15 min increments) <span class="required">*</span></label>
+                                <select name="event_time" class="form-control" id="eventTimeSelect" required>
+                                    <option value="">Select time...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Location <span class="required">*</span></label>
+                            <select name="location_id" class="form-control" required id="locationSelect">
+                                <option value="">Select location...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Event Type <span class="required">*</span></label>
+                            <select name="event_type_id" class="form-control" required id="eventTypeSelect">
+                                <option value="">Select type...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Duration (15 min increments) <span class="required">*</span></label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                                <div>
+                                    <label class="form-label" style="font-size: 0.875rem;">Days</label>
+                                    <select name="duration_days" class="form-control" id="durationDays" required>
+                                        <option value="0">00</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size: 0.875rem;">Hours</label>
+                                    <select name="duration_hours" class="form-control" id="durationHours" required>
+                                        <option value="0">00</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" style="font-size: 0.875rem;">Minutes</label>
+                                    <select name="duration_minutes" class="form-control" id="durationMinutes" required>
+                                        <option value="0">00</option>
+                                        <option value="15">15</option>
+                                        <option value="30">30</option>
+                                        <option value="45">45</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Entrance Type <span class="required">*</span></label>
+                            <select name="entrance_type_id" class="form-control" required id="entranceTypeSelect">
+                                <option value="">Select type...</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Price ('000)</label>
+                            <input type="number" name="price_thousands" class="form-control" min="0" max="100000" step="1" value="0" inputmode="numeric" placeholder="150">
+                            <span class="form-hint">Enter an integer from 0 to 100000. Example: 150 means IDR 150,000.</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Participant Group Type <span class="required">*</span></label>
+                                <select name="participant_group_type" class="form-control" id="participantGroupType" required>
+                                    <option value="">Select group type...</option>
+                                    <option value="Couples">Couples</option>
+                                    <option value="Females Only">Females Only</option>
+                                    <option value="Males Only">Males Only</option>
+                                    <option value="Open">Open</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Lead By <span class="required">*</span></label>
+                                <input type="text" name="lead_by" class="form-control" required
+                                       placeholder="e.g., John Smith, Certified Instructor">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label class="form-label">Contact Email <span class="required">*</span></label>
+                                <input type="email" name="contact_email" class="form-control" required 
+                                       placeholder="contact@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contact Mobile <span class="required">*</span></label>
+                                <input type="tel" name="contact_mobile" class="form-control" required
+                                       placeholder="+62 812 345 6789">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Event Description <span class="required">*</span></label>
+                            <textarea name="notes" class="form-control" rows="5" required
+                                      placeholder="Describe your event, what to expect, what to bring..."></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                Create Event
+                            </button>
+                            <a href="dashboard.html" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h4 style="color: var(--primary);">📸 Add Event Image</h4>
+                    <p class="text-muted mb-0">
+                        You can upload an event image after creating the event. Images help attract more attendees!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a><br>Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            requireAuth();
+            loadFormOptions();
+            populateTimeDropdown();
+            populateDurationDropdowns();
+
+            // Pre-fill contact email
+            const user = Auth.getUser();
+            if (user && user.email) {
+                document.querySelector('[name="contact_email"]').value = user.email;
+            }
+
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('[name="event_date"]').min = today;
+
+            document.getElementById('eventForm').addEventListener('submit', handleSubmit);
+        });
+
+        function populateTimeDropdown() {
+            const select = document.getElementById('eventTimeSelect');
+            for (let hour = 0; hour < 24; hour++) {
+                for (let min = 0; min < 60; min += 15) {
+                    const h = String(hour).padStart(2, '0');
+                    const m = String(min).padStart(2, '0');
+                    const option = document.createElement('option');
+                    option.value = `${h}:${m}:00`;
+                    option.textContent = `${h}:${m}`;
+                    select.appendChild(option);
+                }
+            }
+        }
+
+        function populateDurationDropdowns() {
+            // Days: 0-90
+            const daysSelect = document.getElementById('durationDays');
+            for (let i = 0; i <= 90; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = String(i).padStart(2, '0');
+                if (i === 0) option.selected = true;
+                daysSelect.appendChild(option);
+            }
+
+            // Hours: 0-23
+            const hoursSelect = document.getElementById('durationHours');
+            for (let i = 0; i <= 23; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.textContent = String(i).padStart(2, '0');
+                if (i === 0) option.selected = true;
+                hoursSelect.appendChild(option);
+            }
+        }
+
+        async function loadFormOptions() {
+            try {
+                const [locResponse, typeResponse, entranceResponse] = await Promise.all([
+                    API.get('/locations'),
+                    API.get('/event-types'),
+                    API.get('/entrance-types')
+                ]);
+
+                if (locResponse.success) {
+                    const select = document.getElementById('locationSelect');
+                    locResponse.data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        select.appendChild(option);
+                    });
+                }
+
+                if (typeResponse.success) {
+                    const select = document.getElementById('eventTypeSelect');
+                    typeResponse.data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        select.appendChild(option);
+                    });
+                }
+
+                if (entranceResponse.success) {
+                    const select = document.getElementById('entranceTypeSelect');
+                    entranceResponse.data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load form options:', error);
+            }
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Creating...';
+
+            try {
+                const form = e.target;
+
+                // Build duration string
+                const days = form.duration_days.value;
+                const hours = form.duration_hours.value;
+                const mins = form.duration_minutes.value;
+                const priceThousands = parseInt(form.price_thousands.value || '0', 10) || 0;
+                let duration = '';
+                if (parseInt(days) > 0) duration += `${days} day${days > 1 ? 's' : ''} `;
+                if (parseInt(hours) > 0) duration += `${hours} hour${hours > 1 ? 's' : ''} `;
+                if (parseInt(mins) > 0) duration += `${mins} min${mins > 1 ? 's' : ''}`;
+                duration = duration.trim();
+
+                const data = {
+                    title: form.title.value,
+                    event_date: form.event_date.value,
+                    event_time: form.event_time.value,
+                    location_id: parseInt(form.location_id.value),
+                    event_type_id: parseInt(form.event_type_id.value),
+                    duration: duration,
+                    entrance_type_id: parseInt(form.entrance_type_id.value),
+                    price_thousands: priceThousands,
+                    entrance_fee: priceThousands * 1000,
+                    participant_group_type: form.participant_group_type.value,
+                    lead_by: form.lead_by.value,
+                    contact_email: form.contact_email.value,
+                    contact_mobile: form.contact_mobile.value,
+                    notes: form.notes.value
+                };
+
+                const response = await API.post('/creator/events', data);
+
+                if (response.success) {
+                    // Redirect to edit page to add image and pay
+                    window.location.href = `/creator/edit-event.html?id=${response.data.id}&new=1`;
+                }
+            } catch (error) {
+                document.getElementById('alertContainer').innerHTML =
+                    `<div class="alert alert-error">${error.message}</div>`;
+                btn.disabled = false;
+                btn.textContent = 'Create Event';
+            }
+        }
+    </script>
+</body>
+</html>

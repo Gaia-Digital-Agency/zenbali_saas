@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - All Events</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico?v=20260327b">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png?v=20260327b">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=20260327b">
+    <link rel="shortcut icon" href="../favicon.ico?v=20260327b">
+</head>
+<body>
+    <header class="header" style="background: var(--gray-900); border-bottom: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);">
+        <div class="container">
+            <div class="header-content">
+                <a href="dashboard.html" class="logo" style="color: #ffffff;"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <nav class="nav">
+                    <a href="dashboard.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Dashboard</a>
+                    <a href="events.html" class="nav-link active" style="color: #fff; background: rgba(245, 158, 11, 0.22); border-radius: 999px; padding: 0.5rem 0.9rem; font-weight: 600;">All Events</a>
+                    <a href="event-form.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Create Event</a>
+                    <a href="creators.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">All Creators</a>
+                    <a href="creator-form.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Create Creator</a>
+                    <a href="payments.html" class="nav-link" style="color: rgba(255, 255, 255, 0.82);">Payments</a>
+                    <a href="#" class="nav-link" style="color: rgba(255, 255, 255, 0.82);" onclick="adminLogout()">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <div class="d-flex justify-between align-center mb-3" style="gap: 1rem; flex-wrap: wrap;">
+                <div>
+                    <h1>All Events</h1>
+                    <p class="text-muted mt-1">Browse, edit, and remove events from the admin event directory.</p>
+                </div>
+                <a href="event-form.html" class="btn btn-primary">Create Event</a>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Event Directory</h2>
+                </div>
+                <div class="card-body">
+                    <div id="events-container"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/main.js"></script>
+    <script>
+        let events = [];
+
+        function adminLogout() {
+            localStorage.removeItem('zenbali_admin_token');
+            localStorage.removeItem('zenbali_token');
+            localStorage.removeItem('zenbali_user');
+            window.location.href = Utils.appUrl('/admin/login.html');
+        }
+
+        function requireAdmin() {
+            const token = localStorage.getItem('zenbali_admin_token');
+            if (!token) {
+                window.location.href = Utils.appUrl('/admin/login.html');
+                return false;
+            }
+            localStorage.setItem('zenbali_token', token);
+            return true;
+        }
+
+        function showAlert(message, type = 'success') {
+            document.getElementById('alertContainer').innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        async function deleteEvent(id) {
+            const event = events.find(item => item.id === id);
+            if (!event) return;
+            if (!confirm(`Delete event "${event.title}"?`)) return;
+
+            try {
+                await API.delete(`/admin/events/${id}`);
+                showAlert('Event deleted successfully.');
+                await loadEvents();
+            } catch (error) {
+                showAlert(error.message || 'Failed to delete event.', 'error');
+            }
+        }
+
+        async function loadEvents() {
+            const container = document.getElementById('events-container');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            try {
+                const response = await API.get('/admin/events?limit=100');
+                events = response.success ? (response.data.events || []) : [];
+                renderEvents();
+            } catch (error) {
+                container.innerHTML = '<div class="alert alert-error">Failed to load events.</div>';
+            }
+        }
+
+        function renderEvents() {
+            const container = document.getElementById('events-container');
+            if (!events.length) {
+                container.innerHTML = '<p>No events found.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Creator</th>
+                                <th>Location</th>
+                                <th>Date</th>
+                                <th>Paid</th>
+                                <th>Published</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${events.map(event => `
+                                <tr>
+                                    <td>${Utils.escapeHtml(event.title)}</td>
+                                    <td>${Utils.escapeHtml(event.organizer)}</td>
+                                    <td>${Utils.escapeHtml(event.location)}</td>
+                                    <td>${Utils.formatDate(event.event_date)}</td>
+                                    <td>${event.is_paid ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-error">No</span>'}</td>
+                                    <td>${event.is_published ? '<span class="badge badge-success">Yes</span>' : '<span class="badge badge-error">No</span>'}</td>
+                                    <td>
+                                        <div class="d-flex gap-1" style="flex-wrap: wrap;">
+                                            <a class="btn btn-sm btn-secondary" href="event-form.html?id=${event.id}">Edit</a>
+                                            <a href="${Utils.appUrl(`/event.html?id=${event.id}`)}" class="btn btn-sm btn-outline" target="_blank">View</a>
+                                            <button class="btn btn-sm btn-danger" onclick="deleteEvent('${event.id}')">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!requireAdmin()) return;
+            await loadEvents();
+        });
+    </script>
+</body>
+</html>

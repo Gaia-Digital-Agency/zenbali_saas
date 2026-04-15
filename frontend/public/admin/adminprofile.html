@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Admin Profile - Zen Bali</title>
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        html, body { height: 100%; margin: 0; }
+        body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        main { flex: 1; display: flex; align-items: center; overflow: hidden; }
+
+        .profile-wrap {
+            width: 100%;
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 2rem;
+            align-items: start;
+        }
+        .section-title {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-secondary);
+            margin: 0 0 0.6rem;
+            padding-bottom: 0.35rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .tight-group { margin-bottom: 0.55rem; }
+        .tight-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.2rem;
+        }
+        .tight-group input {
+            width: 100%;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.875rem;
+            border: 1px solid var(--border-default);
+            border-radius: var(--radius);
+            background: var(--bg-primary);
+            box-sizing: border-box;
+        }
+        .tight-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(249,115,22,0.12);
+        }
+        .pw-hint {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            margin: 0 0 0.55rem;
+        }
+        .save-btn {
+            width: 100%;
+            margin-top: 0.65rem;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .footer { padding: 0.5rem 0; }
+
+        @media (max-width: 600px) {
+            body { overflow: auto; height: auto; min-height: 100vh; }
+            main { overflow: visible; align-items: flex-start; padding: 0.75rem 0; }
+            .profile-grid { grid-template-columns: 1fr; gap: 0; }
+            .profile-grid .col-pw { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border-light); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header header-dark">
+        <div class="container">
+            <div class="header-content">
+                <a href="/admin/dashboard.html" class="logo"><span>🌴</span><span>Zen Bali Admin</span></a>
+                <nav class="nav">
+                    <a href="/admin/dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="/admin/events.html" class="nav-link">Events</a>
+                    <a href="/admin/creators.html" class="nav-link">Creators</a>
+                    <a href="/admin/payments.html" class="nav-link">Payments</a>
+                    <a href="/admin/adminprofile.html" class="nav-link active">Profile</a>
+                    <a href="#" class="nav-link" onclick="adminLogout()">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="profile-wrap">
+            <form id="profileForm">
+                <div class="profile-grid">
+                    <!-- Left: Profile Info -->
+                    <div class="col-info">
+                        <p class="section-title">Profile Information</p>
+                        <div class="tight-group">
+                            <label>Name</label>
+                            <input type="text" id="nameInput" placeholder="Admin name">
+                        </div>
+                        <div class="tight-group">
+                            <label>Email</label>
+                            <input type="email" id="emailInput" placeholder="admin@example.com">
+                        </div>
+                        <div class="tight-group">
+                            <label>Phone Number</label>
+                            <input type="tel" id="mobileInput" placeholder="+62 …">
+                        </div>
+                    </div>
+
+                    <!-- Right: Change Password -->
+                    <div class="col-pw">
+                        <p class="section-title">Change Password</p>
+                        <p class="pw-hint">Leave blank to keep current password.</p>
+                        <div class="tight-group">
+                            <label>Current Password</label>
+                            <input type="password" id="currentPwInput" autocomplete="current-password" placeholder="Current password">
+                        </div>
+                        <div class="tight-group">
+                            <label>New Password</label>
+                            <input type="password" id="newPwInput" autocomplete="new-password" placeholder="Min. 8 characters">
+                        </div>
+                        <div class="tight-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" id="confirmPwInput" autocomplete="new-password" placeholder="Repeat new password">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary save-btn" id="saveBtn">Save Changes</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a> | Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script>
+        function adminLogout() {
+            localStorage.removeItem('zenbali_admin_token');
+            localStorage.removeItem('zenbali_token');
+            localStorage.removeItem('zenbali_user');
+            window.location.href = `${APP_BASE}/admin/login.html`;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!localStorage.getItem('zenbali_admin_token')) {
+                window.location.href = `${APP_BASE}/admin/login.html`;
+                return;
+            }
+            loadProfile();
+        });
+
+        async function loadProfile() {
+            try {
+                const token = localStorage.getItem('zenbali_admin_token');
+                const res = await fetch(API_BASE + '/admin/profile', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('nameInput').value   = data.data.name   || '';
+                    document.getElementById('emailInput').value  = data.data.email  || '';
+                    document.getElementById('mobileInput').value = data.data.mobile || '';
+                }
+            } catch(e) { Utils.showError('Failed to load profile'); }
+        }
+
+        document.getElementById('profileForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true; btn.textContent = 'Saving…';
+
+            const newPw      = document.getElementById('newPwInput').value;
+            const confirmPw  = document.getElementById('confirmPwInput').value;
+            const currentPw  = document.getElementById('currentPwInput').value;
+
+            if (newPw || confirmPw || currentPw) {
+                if (!currentPw) { Utils.showError('Current password is required'); btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+                if (newPw.length < 8) { Utils.showError('New password must be at least 8 characters'); btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+                if (newPw !== confirmPw) { Utils.showError('Passwords do not match'); btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+            }
+
+            const payload = {
+                name:   document.getElementById('nameInput').value,
+                email:  document.getElementById('emailInput').value,
+                mobile: document.getElementById('mobileInput').value,
+            };
+            if (newPw) { payload.current_password = currentPw; payload.new_password = newPw; }
+
+            try {
+                const token = localStorage.getItem('zenbali_admin_token');
+                const res = await fetch(API_BASE + '/admin/profile', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('currentPwInput').value = '';
+                    document.getElementById('newPwInput').value     = '';
+                    document.getElementById('confirmPwInput').value = '';
+                    Utils.showSuccess('Profile updated successfully!');
+                } else {
+                    Utils.showError(data.error || 'Update failed');
+                }
+            } catch(err) {
+                Utils.showError('Update failed. Please try again.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Save Changes';
+            }
+        });
+    </script>
+</body>
+</html>

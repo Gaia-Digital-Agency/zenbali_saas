@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>Payments - Zen Bali</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <nav class="nav">
+                    <a href="/creator/dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="/creator/events.html" class="nav-link">My Events</a>
+                    <a href="/creator/new-event.html" class="nav-link">Post Event</a>
+                    <a href="/creator/profile.html" class="nav-link">Profile</a>
+                    <a href="/creator/payments.html" class="nav-link active">Payments</a>
+                    <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container" style="max-width: 800px;">
+            <h1 class="mb-4">Payment History</h1>
+
+            <div class="card">
+                <div class="card-body" style="padding: 0;">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentsBody">
+                                <tr>
+                                    <td colspan="4" class="text-center" style="padding: 2rem;">
+                                        <div class="spinner"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a> | Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            requireAuth();
+            loadPayments();
+        });
+
+        async function loadPayments() {
+            const tbody = document.getElementById('paymentsBody');
+            try {
+                const response = await API.get('/creator/payments?limit=100');
+                if (response.success) {
+                    const payments = response.data.payments || [];
+                    if (!payments.length) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted" style="padding: 2rem;">No payment history yet.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = payments.map(p => `
+                        <tr>
+                            <td>${Utils.escapeHtml(p.event_title)}</td>
+                            <td>Rp ${Number(p.amount).toLocaleString('id-ID')}</td>
+                            <td><span class="badge ${p.status === 'completed' ? 'badge-success' : p.status === 'pending' ? 'badge-warning' : 'badge-error'}">${p.status}</span></td>
+                            <td>${Utils.formatDate(p.created_at)}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center" style="color: var(--error); padding: 1.5rem;">Failed to load payments.</td></tr>';
+            }
+        }
+    </script>
+</body>
+</html>

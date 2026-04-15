@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recent Events - Zen Bali</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="icon" type="image/x-icon" href="../favicon.ico?v=20260327b">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png?v=20260327b">
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=20260327b">
+    <link rel="shortcut icon" href="../favicon.ico?v=20260327b">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="../" class="logo"><span>🌴</span><span>Zen Bali</span></a>
+                <nav class="nav">
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="recent-events.html" class="nav-link active">Recent Events</a>
+                    <a href="events.html" class="nav-link">My Events</a>
+                    <a href="new-event.html" class="nav-link">Post Event</a>
+                    <a href="#" class="nav-link" onclick="Auth.logout(); return false;">Logout</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main style="padding: 2rem 0;">
+        <div class="container">
+            <div class="d-flex justify-between align-center mb-4" style="flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h1>Recent Events</h1>
+                    <p class="text-muted">Your latest event activity in a dedicated page</p>
+                </div>
+                <a href="new-event.html" class="btn btn-primary">+ Post New Event</a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div id="recentEvents"><div class="loading"><div class="spinner"></div></div></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container"><div class="footer-content">
+            <div class="footer-credit">Developed by <a href="https://net1io.com" target="_blank">net1io.com</a><br>Copyright &copy; 2024</div>
+        </div></div>
+    </footer>
+
+    <script src="../js/main.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            requireAuth();
+            loadRecentEvents();
+        });
+
+        async function loadRecentEvents() {
+            const container = document.getElementById('recentEvents');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const response = await API.get('/creator/events?include_past=true&limit=100');
+                if (!response.success) {
+                    container.innerHTML = '<div class="alert alert-error">Failed to load recent events.</div>';
+                    return;
+                }
+
+                const events = (response.data.events || []).slice(0, 10);
+                if (!events.length) {
+                    container.innerHTML = `<div class="empty-state"><p class="text-muted">No events yet</p><a href="${Utils.appUrl('/creator/new-event.html')}" class="btn btn-primary">Create Your First Event</a></div>`;
+                    return;
+                }
+
+                container.innerHTML = `<div class="table-container"><table class="table"><thead><tr><th>Event</th><th>Date</th><th>Location</th><th>Status</th><th>Actions</th></tr></thead><tbody>${events.map(event => `<tr><td><strong>${Utils.escapeHtml(event.title)}</strong></td><td>${Utils.formatDate(event.event_date)}</td><td>${Utils.escapeHtml(event.location)}</td><td>${event.is_published ? '<span class="badge badge-success">Published</span>' : event.is_paid ? '<span class="badge badge-warning">Paid</span>' : '<span class="badge badge-gray">Unpaid</span>'}</td><td><a href="${Utils.appUrl(`/creator/edit-event.html?id=${event.id}`)}" class="btn btn-sm btn-secondary">Edit</a>${!event.is_paid ? ` <button onclick="payForEvent('${event.id}')" class="btn btn-sm btn-primary">Pay $1</button>` : ''}</td></tr>`).join('')}</tbody></table></div>`;
+            } catch (error) {
+                container.innerHTML = `<div class="alert alert-error">Failed to load recent events: ${error.message}</div>`;
+            }
+        }
+
+        async function payForEvent(eventId) {
+            try {
+                const response = await API.post(`/creator/events/${eventId}/pay`, {});
+                if (response.success && response.data.session_url) window.location.href = response.data.session_url;
+            } catch (error) { Utils.showError(error.message); }
+        }
+    </script>
+</body>
+</html>

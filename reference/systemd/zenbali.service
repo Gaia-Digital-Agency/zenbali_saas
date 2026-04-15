@@ -1,0 +1,23 @@
+[Unit]
+Description=Zen Bali application
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=azlan
+Group=www-data
+WorkingDirectory=/var/www/zenbali/backend
+EnvironmentFile=/var/www/zenbali/.env
+ExecStart=/var/www/zenbali/bin/zenbali-server
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+
+# Keep the uploaded-image and frontend lookups predictable from the backend working directory.
+NoNewPrivileges=true
+PrivateTmp=true
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
